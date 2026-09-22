@@ -6,11 +6,11 @@ description: Open the pull requests for a solved issue, one per repo it touches,
 
 # PR Skill
 
-One issue, one PR per repo. The PR body is the deliverable: it is what a reviewer reads instead of
-the diff, and on a cross-repo issue it is how a reviewer in one repo learns what the others did.
+One issue, one PR per repo it touches. The PR body is the deliverable: it is what a reviewer reads
+instead of the diff, and on a cross-repo issue it is how a reviewer in one repo learns what the
+others did.
 
-`GR-rebase` verifies what this skill publishes. Phase 2 lands it: this skill owns a PR from its text
-to its merge.
+This skill owns a PR from its text to its merge: Phases 0–1 open it, Phase 2 lands it.
 
 ## Gate discipline
 
@@ -20,19 +20,20 @@ choosing a recovery.
 
 ## Phase 0 — Scope
 
-Establish which repos need a PR:
+The issue number is the branch's leading number (`4-estimators` → `#4`), and the issue lives in the
+repo whose `origin` the branch pushes to. Read it:
 
 ```sh
-gh api graphql -f query='{repository(owner:"EvoWorkforce",name:"GR-documentation"){issue(number:<n>){
-  title linkedBranches(first:20){nodes{ref{name repository{nameWithOwner}}}}}}}'
+gh issue view <n> --repo <owner>/<repo> --json title,body,state
 ```
 
-Branches created locally never appear there, so also check `git -C <repo> branch --list "<n>-*"`
-across `${HOME}/gitroot` and reconcile. For each candidate, confirm from real output:
+`<owner>/<repo>` comes from `git remote get-url origin`. Where the issue spans several repos, check
+`git -C <repo> branch --list "<n>-*"` in each sibling checkout. For each candidate branch, confirm
+from real output:
 
 - `git log --oneline origin/main..HEAD` is non-empty — a branch with nothing ahead needs no PR.
-- `gh pr list --repo EvoWorkforce/<repo> --head <branch> --json number,state` is empty — otherwise
-  report the existing PR and leave it alone.
+- `gh pr list --repo <owner>/<repo> --head <branch> --json number,state` is empty — otherwise report
+  the existing PR and leave it alone.
 
 **Stop.** Report the repo/branch table, which already have PRs, and the order you will work them.
 
@@ -40,14 +41,13 @@ across `${HOME}/gitroot` and reconcile. For each candidate, confirm from real ou
 
 For each repo, in order:
 
-### Confirm the ready record
+### Confirm the done gate on this HEAD
 
-`GR-rebase` rebased this branch, ran its suite, and verified the stack on the robot. Read the most
-recent file in `<scratch>/<feature>/ready/` and confirm this repo's recorded branch SHA still matches
-`git rev-parse HEAD`.
-
-A mismatch means the branch moved since anyone drove it — report it and ask. Where no record exists,
-say so and offer `/GR-rebase`, which is where the suites now run.
+The PR opens on evidence that the repo's **done gate** (named in its `docs/agents/testing.md`, or
+"the rule" in its `CLAUDE.md`) passed on the exact commit being published. Compare `git rev-parse
+HEAD` with the SHA that gate last passed on in this session or in the plan's progress file. A
+mismatch, or no record, means run the gate now and read its full output before going on. A red gate
+stops the run: report it.
 
 ### Read the change, not the commits
 
@@ -59,50 +59,53 @@ git diff origin/main...HEAD --stat
 git diff origin/main...HEAD
 ```
 
-`GR-rebase` pushed the branch; where `git status -sb` shows no upstream, push it with
-`git push -u origin <branch>`.
+Also read the plan's `## Deviations` section, where one exists — it is what the PR must disclose.
+Where `git status -sb` shows no upstream, push the branch with `git push -u origin <branch>`.
 
 ### Draft the text
 
 The body is read by a person, so read `~/.claude/GR-references/writing-for-people.md` before writing
-it and apply the directives there to both sections below.
+it and apply the directives there to every section below.
 
-**Title**: the issue number, then the branch's words with hyphens as spaces — GitHub's own default.
-Where that runs past roughly 60 characters, summarise the words while keeping the number:
-`62-mark-different-waypoint-types-in-the-map-in-different-colours` becomes `62 colour waypoint
-markers by type`. `GR-squash-merge` reuses this title verbatim as the squash subject, so the shortening
-happens once, here, and the issue number still reaches `main`'s history.
+**Title**: the issue's title, summarised to roughly 60 characters where it runs longer. The issue
+number is carried by the body's closing line, not the title.
 
-**Body**, two sections:
+**Body**:
 
 ```markdown
-Issue: https://github.com/EvoWorkforce/GR-documentation/issues/<n>
+<one sentence: what this PR makes true, and which plan/spec items it delivers>
 
-## What this adds
+## What changes
 
-- <a behaviour, in terms of what the system now does — one bullet per user-visible change>
+- <a behaviour, in terms of what the system now does — one bullet per change, with the test IDs
+  that prove it>
 
 ## Technical changes
 
 - <symbol, topic, message, or parameter level detail — what a reviewer needs to read the diff>
-- <what is deliberately unchanged, where another repo consumes it>
+- <what is deliberately unchanged, where something else consumes it>
+
+## Golden change            <- only when a golden or reviewed baseline was regenerated
+
+<what moved, by how much, and why — the reviewed diff the repo's gotchas require>
+
+## Deviations and open issues   <- only when the plan recorded deviations or left items open
+
+Closes #<n>
 ```
 
-Four rules make the difference between these and the empty bodies already in these repos:
+Four rules make the difference between a useful body and an empty one:
 
-- **"What this adds" is behaviour.** A reviewer uses it to decide whether the change is *right*.
+- **"What changes" is behaviour.** A reviewer uses it to decide whether the change is *right*.
   Naming files there wastes the section.
-- **"Technical changes" names things, not paths.** `/evo/slam/request_map`, `TelemetryStore`,
-  `map_pointcloud_min_interval_s` — see `GR-gateway#11` for the shape.
-- **State what did not change, when another repo consumes it.** `GR-aom#7`'s "No topic/interface
-  changes — `/waypoints_marker` keeps the same publisher and message shape consumed by GR-gateway"
-  is what tells a reviewer elsewhere they are unaffected.
-- **Each PR stands alone.** The issue link is the only cross-repo reference; a reviewer follows it
-  when they need the wider picture.
+- **"Technical changes" names things, not paths** — topics, classes, parameters.
+- **State what did not change, when something else consumes it.** It is what tells a reviewer they
+  are unaffected.
+- **Each PR stands alone.** On a cross-repo issue, the issue is the only cross-repo reference.
 
-**Link the issue by full URL, never a closing keyword.** Closing keywords do not work across
-repositories, so `Closes #<n>` in `GR-aom` would do nothing for an issue in `GR-documentation` — or
-close that repo's own issue of the same number. The issue is closed by hand once every repo lands.
+**Closing the issue.** `Closes #<n>` works when the issue lives in the PR's own repo. For an issue in
+another repo it does nothing, or closes that repo's own issue of the same number: link that one by
+full URL instead, and close it by hand once every repo lands.
 
 ### Iterate, then create
 
@@ -113,15 +116,16 @@ point of this skill.
 On approval:
 
 ```sh
-gh pr create --repo EvoWorkforce/<repo> --base main --head <branch> --title "<approved title>" --body "<approved body>"
+gh pr create --repo <owner>/<repo> --base main --head <branch> --title "<approved title>" --body "<approved body>"
 ```
 
-No draft, no reviewers, no labels — these repos use none of them.
+No draft, no reviewers, no labels — these repos use none of them. The Copilot review arrives on its
+own.
 
 No attribution footer either: never append "🤖 Generated with Claude Code" or any similar line to
 the body. The body submitted is exactly the text the user approved.
 
-**Stop.** Report the PR URL and ask to move to the next repo.
+Go to Phase 2 for this PR. On a multi-repo issue, open the next repo's PR while this one waits.
 
 ## Phase 2 — Land
 
