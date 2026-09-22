@@ -112,8 +112,36 @@ Start from the parked hypotheses.
 ## Phase 3 — Spec
 
 Only when the user asks for one. Write it with `references/spec-template.md` to
-`<scratch>/<feature>/spec/<date>-<summary>.md` — see **Where artifacts go**. Then stop — do not plan or
-implement. `GR-tdd` owns the plan.
+`<scratch>/<feature>/spec/<date>-<summary>.md` — see **Where artifacts go**. Then stop and offer
+Phase 4 — do not plan or implement. `GR-tdd` owns the plan.
+
+## Phase 4 — Issue and parts
+
+On the owner's go-ahead, and not before.
+
+**One issue per feature**, in the repo the work lands in:
+
+```sh
+gh issue create --repo <owner>/<repo> --title "<feature>" --body "<the spec's Context and Goals>"
+```
+
+Then rewrite the spec's `## Scope` as a numbered **part list**, each part naming:
+
+- **its branch**, `<issue>-<slug>-<n>`;
+- **the files it expects to touch**;
+- **the parts it depends on** — by number, or "none".
+
+A part is a unit that can be planned, implemented, reviewed and merged on its own. Split on what
+must land together, not on what is the same size.
+
+This list is `GR-manage`'s input, so **its shape is a contract, not a style**: the manager reads the
+part list to know what to dispatch, in what order, and on which branch. A part with no branch name
+is a part the manager cannot start.
+
+`Refs #<issue>` goes on every part's PR and `Closes #<issue>` on the last — `GR-pr` does that.
+
+**Done when** every part has a branch, a file list and its dependencies, and the issue URL is
+reported.
 
 ## Depth
 
