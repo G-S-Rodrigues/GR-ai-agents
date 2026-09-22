@@ -1,7 +1,7 @@
 ---
 name: GR-pr
 disable-model-invocation: false
-description: Open the pull requests for a solved issue, one per Evo repo it touches — draft a body saying what the repo adds and the technical specifics, iterate on it with the user, and create each PR only once its text is approved.
+description: Open the pull requests for a solved issue, one per repo it touches, and land them — draft a body saying what the repo adds and the technical specifics, create each PR once its text is approved, then wait for CI and the Copilot review, fix what the review got right, and rebase-merge on green.
 ---
 
 # PR Skill
@@ -9,7 +9,8 @@ description: Open the pull requests for a solved issue, one per Evo repo it touc
 One issue, one PR per repo. The PR body is the deliverable: it is what a reviewer reads instead of
 the diff, and on a cross-repo issue it is how a reviewer in one repo learns what the others did.
 
-`GR-rebase` verifies what this skill publishes; `GR-squash-merge` lands it.
+`GR-rebase` verifies what this skill publishes. Phase 2 lands it: this skill owns a PR from its text
+to its merge.
 
 ## Gate discipline
 
@@ -122,7 +123,41 @@ the body. The body submitted is exactly the text the user approved.
 
 **Stop.** Report the PR URL and ask to move to the next repo.
 
+## Phase 2 — Land
+
+The owner's standing authorization: once a PR's text is approved, **land it without asking again**.
+The gate is evidence, not a reply — every check green and the Copilot review triaged.
+
+1. **Wait on events, not by polling.** Run one background `Monitor` per PR that prints when its
+   checks finish and when `copilot-pull-request-reviewer[bot]` submits a review
+   (`gh pr checks <pr> --json name,bucket`, `gh api repos/<owner>/<repo>/pulls/<pr>/reviews`).
+   Copilot usually reviews within ~5 minutes of creation. After 15 minutes with no review, land
+   without it and say so in the report. A PR that reports no checks has not passed any; report
+   that rather than reading absence as green.
+2. **Triage every Copilot comment** (`gh api repos/<owner>/<repo>/pulls/<pr>/comments`). Each is
+   **valid** — the code is wrong or the claim it makes is — or **declined**, with the reason: it
+   contradicts an ADR or a gotcha, misreads the diff, or is style the repo's lint already rules on.
+   Read the code the comment points at before deciding; the comment is a claim, not evidence.
+3. **Fix the valid ones in a subagent** with `model: sonnet`, carrying the comment text, the file
+   and line, and the rule that a behaviour fix goes test-first under `GR-implement-tdd` §2 (RED,
+   GREEN, one scoped commit). When another agent is working in the main tree, the fix works in a
+   worktree of the PR branch. The subagent commits; this skill pushes, and re-reads the diff before
+   it does — a subagent's report is not evidence.
+4. **Reply on each comment**: `fixed in <sha>` or `declined: <reason>`. The trail is what a later
+   reader of the PR has instead of this session.
+5. **Merge when every check is green on the pushed head**, re-watching checks after any fix push
+   (Copilot does not re-review on push, so its review is not awaited again):
+   ```sh
+   gh pr merge <pr> --repo <owner>/<repo> --rebase
+   ```
+   Rebase-merge keeps the one-commit-per-step history a plan produced. A red check, a merge
+   conflict, or a valid comment still unfixed stops the run and gets reported instead.
+6. **Restack.** A branch stacked on the merged one (a plan started before this PR landed) is
+   rebased onto `origin/main` and pushed with `--force-with-lease`, then its own suite runs before
+   its PR opens.
+
 ## Done
 
-Every repo in scope has an open PR, or a stated reason it does not. Report the full list of URLs —
-that list is what `GR-squash-merge` starts from.
+Every repo in scope has a merged PR, or a stated reason it does not: its text is still in
+iteration, a check is red, or a valid review comment is unfixed. Report each PR's URL, merge commit,
+and its Copilot comments with their verdicts.
