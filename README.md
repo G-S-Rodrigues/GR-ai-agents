@@ -122,6 +122,13 @@ Shared material installed to `~/.claude/GR-references/`:
 [`stack-glossary`](references/stack-glossary.md); [`writing-skills`](references/writing-skills.md),
 for authoring a skill; [`writing-for-people`](references/writing-for-people.md), for prose a teammate
 reads.
+[`context-budget`](references/context-budget.md) is the 200k-token rule every agent works to, and
+`scripts/context_watch.sh` is the watch a coordinator runs to enforce it. A reference no session is
+told to read is never read, so add this line to your `~/.claude/CLAUDE.md`:
+
+```markdown
+- Every session and every subagent works to a 200k-token context budget. Before dispatching a subagent or driving another session, and when your own context passes 170k, read `~/.claude/GR-references/context-budget.md`.
+```
 
 Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log, and
 `run_tests_summary.sh <container> "<cmd>"` prints a condensed test summary while keeping the full log

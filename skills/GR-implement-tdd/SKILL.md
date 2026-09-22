@@ -27,9 +27,9 @@ the agent that made it, not batched up by the coordinator afterward.
 
 If `<plan>-progress.md` exists beside the plan, a previous agent handed off: read it first and resume
 from it. Every implementing agent works to a **~200k-token context budget**, handing off rather than
-running past it; whoever dispatches one watches that budget.
-[`references/context-budget.md`](references/context-budget.md) has how to watch it, the handoff
-file's contents, and how to resume.
+running past it; whoever dispatches one watches that budget and puts the budget clause in the
+dispatch prompt. `~/.claude/GR-references/context-budget.md` has the thresholds, how to watch them,
+the handoff file's contents, and how to resume.
 
 ## 2. Per step: RED → GREEN → verify
 
