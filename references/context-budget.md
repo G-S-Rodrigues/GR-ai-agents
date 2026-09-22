@@ -27,7 +27,7 @@ is that process.
 |---|---|---|
 | an Agent-tool subagent | the coordinator that dispatched it — a subagent cannot be compacted from outside | `~/.claude/projects/<project>/<coordinator-session>/subagents/agent-<id>.jsonl` |
 | a peer session (its own desktop or terminal session, reached with `SendMessage`) | the coordinator driving it | `~/.claude/projects/<project>/<session-id>.jsonl` |
-| a session with no coordinator | itself | its own transcript, or the status line |
+| a session with no coordinator | itself: the watch below with `--once --budget 0` on its own transcript, the newest one (`ls -t ~/.claude/projects/<project>/*.jsonl \| head -1`) | `~/.claude/projects/<project>/<session-id>.jsonl` |
 
 `<project>` is the working directory with every `/` replaced by `-`. A peer's session id is in
 `~/.claude/sessions/*.json`, next to the `name` it shows in the sidebar.
@@ -53,8 +53,8 @@ had. The coordinator watches its own context too, and hands off the same way.
 
 ## Every dispatch carries the budget
 
-A dispatched agent has not read this file unless its prompt points here. Every dispatch prompt
-includes:
+The clause tells the agent the reply the coordinator waits for, and the dispatch prompt is the
+only place a subagent is guaranteed to see it. Every dispatch prompt includes:
 
 > Context budget: ~200k tokens, per `~/.claude/GR-references/context-budget.md`. Pipe long output
 > through `tail`/`grep`. When you pass 170k, or when the coordinator asks, finish the step to a

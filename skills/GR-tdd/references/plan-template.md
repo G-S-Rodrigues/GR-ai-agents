@@ -72,8 +72,8 @@ test -f /.dockerenv && echo "in container" || echo "NOT in container"
 ```
 
 Each command below is the repo's own, from `docs/agents/testing.md` and
-`docs/agents/lint-and-precommit.md`. The Evo ROS2 form is shown; a repo with its own gate uses that
-(e.g. `./scripts/check.sh --full`).
+`docs/agents/lint-and-precommit.md`. The Evo ROS2 form is shown; a repo that names its own gate
+uses that instead.
 
 ```sh
 # the suite / done gate

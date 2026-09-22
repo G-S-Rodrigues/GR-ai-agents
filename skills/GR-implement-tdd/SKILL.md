@@ -26,17 +26,17 @@ Reuse decisions specify` and the step 2 commit instructions below, so each step 
 the agent that made it, not batched up by the coordinator afterward.
 
 If `<plan>-progress.md` exists beside the plan, a previous agent handed off: read it first and resume
-from it. Every implementing agent works to a **~200k-token context budget**, handing off rather than
-running past it; whoever dispatches one watches that budget and puts the budget clause in the
-dispatch prompt. `~/.claude/GR-references/context-budget.md` has the thresholds, how to watch them,
-the handoff file's contents, and how to resume.
+from it. Before dispatching an implementing agent, and whenever your context passes 170k, read
+`~/.claude/GR-references/context-budget.md`: the dispatcher watches each agent's budget and puts the
+budget clause in its prompt, and that file has the thresholds, the handoff file and how to resume.
 
 ## 2. Per step: RED → GREEN → verify
 
 The repo's own `docs/agents/testing.md` names the commands this section runs: a single test, the
-suite, and the gate that defines done (often restated as "the rule" in the repo's `CLAUDE.md`). Run
-them in the container and working directory the repo's `CLAUDE.md` names. Where the repo has no
-`testing.md`, fall back to `~/.claude/GR-references/working-in-the-devcontainer.md`.
+per-step suite, and the **done gate** — the one command that defines done, often restated as "the
+rule" in the repo's `CLAUDE.md`, run once before §5's claim. Run them in the container and working
+directory the repo's `CLAUDE.md` names. Where the repo has no `testing.md`, fall back to
+`~/.claude/GR-references/working-in-the-devcontainer.md`.
 
 **RED.** Write the test. Run it. **Paste the failure output.** If you did not watch it fail, you do not
 know it tests the right thing.
@@ -64,8 +64,6 @@ mismatch, wrong topic) is not RED — fix the test first.
 - If that output shows a failure whose cause isn't immediately obvious, dispatch the
   `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
   inline — it returns the failing test, the error text, and a likely-cause category in a few lines.
-- The repo's done gate runs once, before the completion claim in §5 — not per step, unless
-  `testing.md` says otherwise.
 
 **Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
 keeps a rollback point if a later step goes wrong. Follow `GR-commit`'s scoping rules exactly:
@@ -100,8 +98,7 @@ repo has a `.pre-commit-config.yaml`.
 
 ## 5. Before any completion claim
 
-1. **Identify** the command that proves the claim. For "done", that is the repo's done gate
-   (`testing.md`, or "the rule" in its `CLAUDE.md`), not only the tests the plan touched.
+1. **Identify** the command that proves the claim. For "done", that is the done gate (§2).
 2. **Run** it fresh and complete.
 3. **Read** the full output — exit code, failure count.
 4. **Then** claim it, with the evidence.
