@@ -1,22 +1,28 @@
 ---
 name: GR-pr
 disable-model-invocation: false
-description: Open the pull requests for a solved issue, one per repo it touches, and land them — draft a body saying what the repo adds and the technical specifics, create each PR once its text is approved, then wait for CI and the Copilot review, fix what the review got right, and rebase-merge on green.
+description: Open the pull request for a finished branch and land it — draft a body saying what the repo adds and the technical specifics, create it once its text is approved, then wait for CI and the Copilot review, fix what the review got right, and rebase-merge on green.
 ---
 
 # PR Skill
 
-One issue, one PR per repo it touches. The PR body is the deliverable: it is what a reviewer reads
-instead of the diff, and on a cross-repo issue it is how a reviewer in one repo learns what the
-others did.
+One branch, one PR. The PR body is the deliverable: it is what a reviewer reads instead of the
+diff.
 
 This skill owns a PR from its text to its merge: Phases 0–1 open it, Phase 2 lands it.
 
+## Invoked by `GR-manage`
+
+When a coordinator dispatched this, **the approval gates below are the manager's and are already
+satisfied** — do not stop for them. Escalate instead of asking: report what needs deciding and wait,
+rather than choosing.
+
+Invoked by the owner, every gate is unchanged. One skill, two callers — never a second copy.
+
 ## Gate discipline
 
-Each repo's PR is created only after the user approves that repo's text. A go-ahead for one repo
-authorises one PR. When a command fails or returns something unexpected, stop and report instead of
-choosing a recovery.
+The PR is created only after its text is approved. When a command fails or returns something
+unexpected, stop and report instead of choosing a recovery.
 
 ## Phase 0 — Scope
 
@@ -27,19 +33,15 @@ repo whose `origin` the branch pushes to. Read it:
 gh issue view <n> --repo <owner>/<repo> --json title,body,state
 ```
 
-`<owner>/<repo>` comes from `git remote get-url origin`. Where the issue spans several repos, check
-`git -C <repo> branch --list "<n>-*"` in each sibling checkout. For each candidate branch, confirm
-from real output:
+`<owner>/<repo>` comes from `git remote get-url origin`. Confirm from real output:
 
 - `git log --oneline origin/main..HEAD` is non-empty — a branch with nothing ahead needs no PR.
 - `gh pr list --repo <owner>/<repo> --head <branch> --json number,state` is empty — otherwise report
   the existing PR and leave it alone.
 
-**Stop.** Report the repo/branch table, which already have PRs, and the order you will work them.
+**Stop.** Report the branch, whether a PR already exists for it, and what you will do.
 
-## Phase 1 — One repo at a time
-
-For each repo, in order:
+## Phase 1 — Open it
 
 ### Confirm the done gate on this HEAD
 
@@ -101,11 +103,10 @@ Four rules make the difference between a useful body and an empty one:
 - **"Technical changes" names things, not paths** — topics, classes, parameters.
 - **State what did not change, when something else consumes it.** It is what tells a reviewer they
   are unaffected.
-- **Each PR stands alone.** On a cross-repo issue, the issue is the only cross-repo reference.
+- **The PR stands alone.** A reader has the body and the diff, not this session.
 
-**Closing the issue.** `Closes #<n>` works when the issue lives in the PR's own repo. For an issue in
-another repo it does nothing, or closes that repo's own issue of the same number: link that one by
-full URL instead, and close it by hand once every repo lands.
+**Closing the issue.** One issue covers a feature's parts, so use `Refs #<n>` on every part's PR and
+`Closes #<n>` only on the last — the issue lives in this repo, where both work.
 
 ### Iterate, then create
 
@@ -125,7 +126,7 @@ own.
 No attribution footer either: never append "🤖 Generated with Claude Code" or any similar line to
 the body. The body submitted is exactly the text the user approved.
 
-Go to Phase 2 for this PR. On a multi-repo issue, open the next repo's PR while this one waits.
+Go to Phase 2.
 
 ## Phase 2 — Land
 
@@ -156,12 +157,12 @@ The gate is evidence, not a reply — every check green and the Copilot review t
    ```
    Rebase-merge keeps the one-commit-per-step history a plan produced. A red check, a merge
    conflict, or a valid comment still unfixed stops the run and gets reported instead.
-6. **Restack.** A branch stacked on the merged one (a plan started before this PR landed) is
-   rebased onto `origin/main` and pushed with `--force-with-lease`, then its own suite runs before
-   its PR opens.
+6. **Restack** any branch that was stacked on the merged one by running `GR-rebase` on it — it
+   owns the `--onto` form a rebase-merged predecessor needs, and the rule deciding which gate
+   re-runs. Do not rebase inline here; one copy of that knowledge, in one place.
 
 ## Done
 
-Every repo in scope has a merged PR, or a stated reason it does not: its text is still in
-iteration, a check is red, or a valid review comment is unfixed. Report each PR's URL, merge commit,
-and its Copilot comments with their verdicts.
+The branch has a merged PR, or a stated reason it does not: its text is still in iteration, a check
+is red, or a valid review comment is unfixed. Report the PR's URL, its merge commit, and its Copilot
+comments with their verdicts.
