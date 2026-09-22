@@ -1,7 +1,7 @@
 ---
 name: GR-implement-tdd
 disable-model-invocation: false
-description: Execute an existing implementation plan from .scratch/<feature>/plans/ test-first — red, green, verify, per step. Use when the user asks to implement, execute, or carry out a plan, or says the plan is approved and to build it.
+description: Execute an existing implementation plan from ~/gitroot/.scratch/<feature>/plans/ test-first — red, green, verify, per step. Use when the user asks to implement, execute, or carry out a plan, or says the plan is approved and to build it.
 ---
 
 # Evo Implement TDD
