@@ -8,6 +8,14 @@ description: Execute an existing implementation plan from ~/gitroot/.scratch/<fe
 
 Execute one plan file. Evidence before claims, always.
 
+## Invoked by `GR-manage`
+
+When a coordinator dispatched this, **the approval gates below are the manager's and are already
+satisfied** — do not stop for them. Escalate instead of asking: report what needs deciding and wait,
+rather than choosing.
+
+Invoked by the owner, every gate is unchanged. One skill, two callers — never a second copy.
+
 ## 1. Load and challenge the plan
 
 Read the plan, `docs/agents/repo-gotchas.md` and `docs/agents/testing.md`, and the ADRs touching the
