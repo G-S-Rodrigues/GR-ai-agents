@@ -129,8 +129,9 @@ toward resolving them by calling rather than asking.
 ## Where artifacts go
 
 Read `~/.claude/GR-references/where-documents-go.md` — it is the single source of truth for the grill,
-spec, and plan paths. Resolve `<scratch>` and `<feature>` **once**, in Phase 0, and state the choice
-in one line before the first question.
+spec, and plan paths. `<scratch>` is always `${HOME}/gitroot/.scratch/`; resolve `<feature>` — the
+branch name — **once**, in Phase 0, and state the resolved path in one line before the first
+question.
 
 ## Digest file
 

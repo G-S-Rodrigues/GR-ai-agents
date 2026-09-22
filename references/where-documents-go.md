@@ -44,7 +44,9 @@ stack-wide defaults. Say that you fell back to it, and offer to bootstrap the re
 ├── spec/<date>-<summary>.md
 ├── plans/<date>-<summary>-tdd.md             (+ <date>-<summary>-tdd-progress.md after a handoff)
 ├── review/<date>-<summary>.md
-└── ready/<date>-ready.md
+├── ready/<date>-ready.md
+├── run/ledger.md
+└── open_topics/<date>-<slug>.md
 ```
 
 Each subdirectory holds a different **stage** of the work, which is why a session's output goes to
@@ -56,7 +58,9 @@ exactly one of them:
 | `spec/` | the settled decisions that interrogation produced | `GR-brainstorming` |
 | `plans/` | the test-first implementation plan for a spec; beside a plan, its `-progress.md` when an implementing agent handed off at its context budget | `GR-tdd`; progress: `GR-implement-tdd` |
 | `review/` | one review pass over the finished branch: findings, which were applied with the output that proved it, which were declined and why | `GR-review` |
-| `ready/` | what the stack was verified at: per repo, the branch SHA and the `main` SHA it was rebased onto, its suite result, and the user's robot verdict | `GR-rebase` |
+| `ready/` | what the branch was verified at: the branch SHA, the `main` SHA it was rebased onto, and which gate ran | `GR-rebase` |
+| `run/` | the ledger of one run: the part table, the current stage, every ruling given, every gate result | `GR-manage` |
+| `open_topics/` | a question raised mid-run that did not block it, quoted in the PR body so it reaches the owner at review time | `GR-manage` |
 
 `review/` sits at the far end, after the implementation is committed, and `GR-pr` reads it instead
 of re-deriving a cross-repo change from the diffs. A review digest is not a grill digest: grilling
@@ -74,18 +78,13 @@ number, so filenames do **not** repeat it — branches are created from a GitHub
 is already there. If the work is on `main`, there is no feature name to use: say so and stop rather
 than inventing one.
 
-**`<scratch>` depends on reach:**
+**`<scratch>` is always `${HOME}/gitroot/.scratch/`.** There is no reach decision to make. The tree
+sits outside every repo's working tree, which is the point: `git clean -xdf` run inside a repo cannot
+reach a feature's plans, progress files or ledger, and a run that survives a session has to survive
+that too.
 
-| Reach | Location |
-|---|---|
-| One repo | `<repo>/.scratch/` |
-| More than one repo | `${HOME}/gitroot/.scratch/` |
-
-Decide reach once, at the start, and say which you chose in one line. When in doubt — the branch
-exists in two repos, or the change touches a cross-repo contract (a `robot_msgs` shape, a topic name,
-a QoS profile) — it is cross-repo. Put it in `gitroot`.
-
-Never split one feature's artifacts across both trees.
+Never split one feature's artifacts across two trees. Work already living under a repo's own
+`.scratch/` stays where it is — only new features use this path.
 
 ## `<date>` and `<summary>`
 

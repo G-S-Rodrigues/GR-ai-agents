@@ -1,7 +1,7 @@
 ---
 name: GR-tdd
 disable-model-invocation: true
-description: Turn an idea, spec, or grill digest into a test-first implementation plan written to .scratch/<feature>/plans/. Use when the user asks for a plan, an implementation plan, a TDD plan, or asks how to implement something; also when a spec is ready to be planned. Produces the plan only — GR-implement-tdd executes it.
+description: Turn an idea, spec, or grill digest into a test-first implementation plan written to ~/gitroot/.scratch/<feature>/plans/. Use when the user asks for a plan, an implementation plan, a TDD plan, or asks how to implement something; also when a spec is ready to be planned. Produces the plan only — GR-implement-tdd executes it.
 ---
 
 # Evo TDD — plan creation
@@ -91,9 +91,9 @@ single source of truth for the path — and write to:
 ```
 
 `<feature>` is the branch name (e.g. `56-fe-map-visualization`), so the filename does **not** repeat
-the issue number. `<scratch>` is `<repo>/.scratch/` for single-repo work and
-`${HOME}/gitroot/.scratch/` when the plan touches more than one repo. `<date>` is today. The `-tdd`
-suffix keeps the plan distinct from a spec sharing the summary.
+the issue number. `<scratch>` is always `${HOME}/gitroot/.scratch/` — see
+`~/.claude/GR-references/where-documents-go.md`. `<date>` is today. The `-tdd` suffix keeps the plan
+distinct from a spec sharing the summary.
 
 State the resolved path in one line before writing.
 

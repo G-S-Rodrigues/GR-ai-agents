@@ -56,7 +56,8 @@ glossary in the same edit.
 Where a shared term is really a contract — a `robot_msgs` shape, a topic name, a QoS profile — the
 glossary can name it but cannot hold it. Raise an ADR as well.
 
-Editing the stack glossary is cross-repo work: artifacts go to `${HOME}/gitroot/.scratch/<feature>/`.
+Artifacts go to `${HOME}/gitroot/.scratch/<feature>/`, as all per-feature work does — see
+`~/.claude/GR-references/where-documents-go.md`.
 
 ## Clearing an UNCONFIRMED glossary
 

@@ -68,9 +68,9 @@ issue ──▶ /GR-prospect ──▶ /GR-brainstorming ──▶ /GR-tdd ─�
     subagents the skills dispatch
 ```
 
-Artifacts land in `<scratch>/<feature>/{grill,spec,plans,review,ready}/`, where `<feature>` is the branch
-name and `<scratch>` is `<repo>/.scratch/` for single-repo work or `~/gitroot/.scratch/` when more
-than one repo is touched. Standing knowledge goes instead to `<repo>/docs/{agents,adr}/` and
+Artifacts land in `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,open_topics}/`,
+where `<feature>` is the branch name. One location, outside every repo working tree, so a
+`git clean -xdf` inside a repo cannot reach a run's plans or its ledger. Standing knowledge goes instead to `<repo>/docs/{agents,adr}/` and
 `CONTEXT.md`. Full rules in [`references/where-documents-go.md`](references/where-documents-go.md).
 
 ## Skills
