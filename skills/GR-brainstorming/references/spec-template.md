@@ -28,9 +28,12 @@ measurement first.
 
 ## Scope
 
-Numbered items. Each item:
+Numbered items — and after Phase 4, the **part list** `GR-manage` dispatches from. Each item:
 
 ### N. <name>
+
+**Branch:** `<issue>-<slug>-<n>`
+**Depends on:** part numbers, or "none".
 
 **Now:** current behaviour, with `file:line`.
 **Change:** what it becomes. Concrete enough to implement, not so concrete it dictates style.
