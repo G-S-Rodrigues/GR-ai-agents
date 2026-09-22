@@ -61,12 +61,29 @@ only place a subagent is guaranteed to see it. Every dispatch prompt includes:
 > clean point, write the progress file that reference describes, and reply exactly
 > `handoff written`.
 
+## Coordinating a run
+
+A coordinator that drives a multi-part run lasts longer than any agent in it, so it spends its
+context differently: it holds the shape of the run and nothing else. Four rules do that work.
+
+- **Read no source file and no test log.** Every detail stays in the subagent that produced it. A
+  coordinator that opens a failing test to see for itself has become a worker and will run out of
+  context mid-run.
+- **Cap every report at ~30 lines**, in the dispatch prompt. An uncapped subagent returns what it
+  found interesting, which is the whole file.
+- **Write to the ledger before the next dispatch** — every ruling, commit SHA, worker name and open
+  topic, never only in the reply. Context that exists in one session's memory is gone at its next
+  compaction, silently, and a ruling is the expensive kind to lose.
+- **At 170k, stop.** Write the ledger, notify the owner, and end the session. A coordinator cannot
+  start its own successor, so the ledger is what the next one resumes from — which is the whole
+  reason it is complete rather than tidy.
+
 ## Keeping the budget
 
 Every command whose output is not needed in full goes through `tail`, `grep`, or `-q`. A full log
-read inline costs more than the step it came from. That is what `tail`, `run_tests_summary.sh`
-(where the repo runs `run_tests.sh`) and the `test-failure-triage` subagent are for. Fan-out reads
-go to `Explore` or `GR-researcher`, which return conclusions rather than file dumps.
+read inline costs more than the step it came from. That is what `tail`, `grep` and the
+`test-failure-triage` subagent are for. Fan-out reads go to `Explore` or `GR-researcher`, which
+return conclusions rather than file dumps.
 
 ## The handoff
 
