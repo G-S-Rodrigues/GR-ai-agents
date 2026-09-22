@@ -33,19 +33,18 @@ file's contents, and how to resume.
 
 ## 2. Per step: RED → GREEN → verify
 
+The repo's own `docs/agents/testing.md` names the commands this section runs: a single test, the
+suite, and the gate that defines done (often restated as "the rule" in the repo's `CLAUDE.md`). Run
+them in the container and working directory the repo's `CLAUDE.md` names. Where the repo has no
+`testing.md`, fall back to `~/.claude/GR-references/working-in-the-devcontainer.md`.
+
 **RED.** Write the test. Run it. **Paste the failure output.** If you did not watch it fail, you do not
 know it tests the right thing.
 
-This matters more here than in most codebases, because two things conspire to hide a test that tests
-nothing:
-
-- `test/setup/run_tests.sh` swallows failures without `RELEASE=true` (`robot ... || true`), so the
-  exit code is meaningless in the default path.
-- It sources `/opt/<pkg>/setup.bash` — the **installed** package, not your edits.
-
-So a test that never ran red, run by a runner that cannot fail, against stale installed code, reports
-success on nothing at all. `~/.claude/GR-references/working-in-the-devcontainer.md` has the command
-that defeats both traps.
+A runner that cannot fail, or that runs an installed copy instead of your edits, reports success on
+nothing at all. Before trusting the first run, confirm its exit code reflects failures and that it
+runs the working tree. The Evo ROS2 repos' `test/setup/run_tests.sh` has both traps;
+`working-in-the-devcontainer.md` has the command that defeats them.
 
 Confirm the failure is the *expected* one. A test failing for the wrong reason (import error, QoS
 mismatch, wrong topic) is not RED — fix the test first.
@@ -55,17 +54,18 @@ mismatch, wrong topic) is not RED — fix the test first.
 **Verify.** Run the test again, then the rest of the suite once, immediately before the commit gate
 — not after every RED/GREEN iteration in between.
 
-- RED and GREEN confirmation run the single test being worked on, directly (`--gtest_filter=`, Robot
-  `--test <name>`, or whatever the repo's own `docs/agents/testing.md` documents) — not the full
-  `run_tests.sh`. These runs are already short; read their output directly.
-- The full-suite regression run happens once per step, via
-  `${HOME}/gitroot/GR-ai-agents/scripts/run_tests_summary.sh` (see
-  `~/.claude/GR-references/working-in-the-devcontainer.md`), which prints a condensed summary
-  instead of the full log.
-- If that summary shows a failure whose cause isn't immediately obvious from the condensed output,
-  dispatch the `test-failure-triage` subagent with the summary (or the log path it printed) rather
-  than reading the full log inline — it returns the failing test, the error text, and a likely-cause
-  category in a few lines.
+- RED and GREEN confirmation run the single test being worked on, directly, with the single-test
+  invocation `testing.md` documents (`pytest -k`, `--gtest_filter=`, `launch_test <file>`, Robot
+  `--test <name>`) — not the suite. These runs are short; read their output directly.
+- The regression run happens once per step, with the command `testing.md` names for per-commit
+  verification (the pre-commit gate, where one exists). Keep its log out of context: pipe it through
+  `tail`, or use `${HOME}/gitroot/GR-ai-agents/scripts/run_tests_summary.sh` where the repo runs
+  `run_tests.sh`.
+- If that output shows a failure whose cause isn't immediately obvious, dispatch the
+  `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
+  inline — it returns the failing test, the error text, and a likely-cause category in a few lines.
+- The repo's done gate runs once, before the completion claim in §5 — not per step, unless
+  `testing.md` says otherwise.
 
 **Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
 keeps a rollback point if a later step goes wrong. Follow `GR-commit`'s scoping rules exactly:
@@ -93,12 +93,15 @@ visible — don't pause for a reply. This exception lives here, not in `GR-commi
 - **Full mode:** review at each phase boundary and at the end.
 - **`quick` mode:** review at the end only.
 
-A review pass means: re-read the diff against the plan's steps and acceptance criteria, run
-`pre-commit run --all-files` per `docs/agents/lint-and-precommit.md`, and report what does not match.
+A review pass means: re-read the diff against the plan's steps and acceptance criteria, run the
+repo's lint gate over all files, and report what does not match. `docs/agents/lint-and-precommit.md`
+names the gate; where that file is absent, run `pre-commit run --all-files` in the container if the
+repo has a `.pre-commit-config.yaml`.
 
 ## 5. Before any completion claim
 
-1. **Identify** the command that proves the claim.
+1. **Identify** the command that proves the claim. For "done", that is the repo's done gate
+   (`testing.md`, or "the rule" in its `CLAUDE.md`), not only the tests the plan touched.
 2. **Run** it fresh and complete.
 3. **Read** the full output — exit code, failure count.
 4. **Then** claim it, with the evidence.

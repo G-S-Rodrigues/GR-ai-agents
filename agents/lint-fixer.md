@@ -45,7 +45,7 @@ an attempt guessing.
 2. If in scope, apply the minimal fix.
 3. Re-run **only the failing hook**, not the full suite:
    ```
-   docker exec <container> bash -lc "source setup.sh && pre-commit run <hook-id> --files <files>"
+   docker exec <container> bash -lc "cd <workdir> && source setup.sh && pre-commit run <hook-id> --files <files>"
    ```
 4. If it passes, stop and report success.
 5. If it still fails, you get one more attempt at most (two total). After that, or if step 1

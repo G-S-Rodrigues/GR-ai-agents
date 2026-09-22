@@ -22,8 +22,8 @@ near the budget, it hands off unprompted.
 ## Keeping the budget
 
 Every command whose output is not needed in full goes through `tail`, `grep`, or `-q`. A full log
-read inline costs more than the step it came from — that is what `run_tests_summary.sh` and the
-`test-failure-triage` subagent are for.
+read inline costs more than the step it came from — that is what `tail`, `run_tests_summary.sh`
+(where the repo runs `run_tests.sh`) and the `test-failure-triage` subagent are for.
 
 ## The handoff
 

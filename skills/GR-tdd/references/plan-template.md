@@ -71,12 +71,18 @@ Runnable commands, in devcontainer form. Claude runs on the host; the host has n
 test -f /.dockerenv && echo "in container" || echo "NOT in container"
 ```
 
+Each command below is the repo's own, from `docs/agents/testing.md` and
+`docs/agents/lint-and-precommit.md`. The Evo ROS2 form is shown; a repo with its own gate uses that
+(e.g. `./scripts/check.sh --full`).
+
 ```sh
-docker exec -it <container> bash -lc 'cd "$HOME/workspace" && source setup.sh && colcon build --symlink-install && RELEASE=true ./test/setup/run_tests.sh'
+# the suite / done gate
+docker exec -it <container> bash -lc 'cd <workdir> && source setup.sh && colcon build --symlink-install && RELEASE=true ./test/setup/run_tests.sh'
 ```
 
 ```sh
-docker exec -it <container> bash -lc 'cd "$HOME/workspace" && source setup.sh && pre-commit run --all-files'
+# the lint gate
+docker exec -it <container> bash -lc 'cd <workdir> && source setup.sh && pre-commit run --all-files'
 ```
 
 State the expected end state concretely: "6 new gateway cases, 2 new signaler cases, no regressions."

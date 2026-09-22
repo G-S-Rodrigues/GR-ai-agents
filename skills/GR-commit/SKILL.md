@@ -13,9 +13,9 @@ Use this skill when the user asks to commit changes in an Evo repo.
 1. Check the current branch with `git branch --show-current`. Work always happens on a branch created for a specific GitHub Projects task, never directly on `main`. If the current branch is `main`, stop and alert the user instead of committing — don't create a branch on their behalf or commit anyway, since you don't know which task this work belongs to.
 2. Run `git status` / `git diff` and identify which changed or untracked files actually belong to the implementation being committed. If the working tree has unrelated changes sitting around (other in-progress work, stray edits, unrelated generated files), leave them out — don't sweep them in just because they're modified.
 3. Stage only those files by name (`git add <file> ...`). Avoid `git add -A` / `git add .` since that stages everything indiscriminately.
-4. If the repo has a `.pre-commit-config.yaml`, read `docs/agents/lint-and-precommit.md` first — it is the authority on which hooks are actually live in this repo and which are inert boilerplate. Then run pre-commit against just the staged files before writing the commit message; verification should track the same scope as the commit, not the whole repo. These repos' tooling lives in a devcontainer, not on the host (see the repo's own CLAUDE.md for the container name), so run it there:
+4. If the repo has a `.pre-commit-config.yaml`, read `docs/agents/lint-and-precommit.md` first, if it exists — it is the authority on which hooks are actually live in this repo and which are inert boilerplate. Where it is absent, read `.pre-commit-config.yaml` itself. Then run pre-commit against just the staged files before writing the commit message; verification should track the same scope as the commit, not the whole repo. These repos' tooling lives in a devcontainer, not on the host, so run it there. The repo's own CLAUDE.md names the container and the working directory the tree is mounted at (`$HOME/workspace` in the Evo devcontainers; other repos differ, e.g. `/ws`):
    ```
-   docker exec <container_name> bash -lc 'cd "$HOME/workspace" && source setup.sh && pre-commit run --files <staged files>'
+   docker exec <container_name> bash -lc 'cd <workdir> && source setup.sh && pre-commit run --files <staged files>'
    ```
 
    If `docker exec` fails because the container isn't running (check `docker ps -a`), start it first — safe to do without asking, and safe even if you're already attached to it in VS Code:
@@ -28,11 +28,11 @@ Use this skill when the user asks to commit changes in an Evo repo.
    - Don't commit while pre-commit is still failing.
 5. Write the commit message as one sentence that completes "This commit ...". Don't type the words "This commit" into the message — start directly with the completing verb phrase (present tense, third person singular, e.g. "adds", "fixes", "removes"), so it reads naturally when mentally prefixed with "This commit ", and keep it specific rather than generic. The message is that one sentence and nothing else: never add a `Co-Authored-By:` trailer, a "Generated with Claude Code" line, or any other attribution.
 6. Show the user the proposed message together with the list of staged files, and ask them to approve it before committing. Wait for their explicit answer — silence, or a reply about something else, is not approval. If they ask for changes, revise and show it again; repeat until they approve. Approval covers this one message only, so ask again for every subsequent commit, including the amended-and-recommitted case.
-7. Commit, using exactly the message the user approved. If the repo has a `.pre-commit-config.yaml`, it's installed as an actual git hook, so a bare host-side `git commit` re-triggers pre-commit on the host and fails even after step 4 passed in the container — run the commit inside the container instead:
+7. Commit, using exactly the message the user approved. If `.git/hooks/pre-commit` exists, pre-commit is installed as an actual git hook, so a bare host-side `git commit` re-triggers it on the host and fails even after step 4 passed in the container — run the commit inside the container instead:
    ```
-   docker exec <container_name> bash -lc 'cd "$HOME/workspace" && git commit -m "<message>"'
+   docker exec <container_name> bash -lc 'cd <workdir> && git commit -m "<message>"'
    ```
-   Repos with no `.pre-commit-config.yaml` have no such hook; commit on the host as normal.
+   With no installed hook (a `.pre-commit-config.yaml` alone does not install one), commit on the host as normal.
 8. If step 4 required any fix, say so explicitly afterward and summarize exactly what was fixed and in which file(s) — don't let it pass silently.
 
 ## Examples

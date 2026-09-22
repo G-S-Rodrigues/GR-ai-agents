@@ -102,8 +102,11 @@ State the resolved path in one line before writing.
 - **Verification runs in the devcontainer, not on the host.** Claude runs on the host and the host has
   no toolchain. Every verification command is written as:
   ```sh
-  docker exec -it <container> bash -lc 'cd "$HOME/workspace" && source setup.sh && <command>'
+  docker exec -it <container> bash -lc 'cd <workdir> && source setup.sh && <command>'
   ```
+  The repo's `CLAUDE.md` names `<container>` and `<workdir>` (`$HOME/workspace` in the Evo
+  devcontainers). `<command>` comes from the repo's `docs/agents/testing.md` (single test, per-step
+  suite, done gate), never from memory of another repo.
   Include this line in the plan so the implementer can confirm where it is running:
   ```sh
   test -f /.dockerenv && echo "in container" || echo "NOT in container"
