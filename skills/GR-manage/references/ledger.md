@@ -33,6 +33,10 @@ Part: <n>
 Stage: <plan | review-plan | implement | review-branch | rebase | pr>
 Worker: <agent name / id, so its transcript can be found>
 Started: <timestamp>
+Branch head: <sha, or "no commits yet">
+Done so far: <the commits on this branch, one line each, and what is left>
+Last reported: <the worker's last report in a line or two — including any measurement that
+prompted an escalation, and whether it predates or postdates a fix attempt>
 
 ## Rulings
 
@@ -56,7 +60,12 @@ Started: <timestamp>
 - **The part table** is the run. `State` is one of `not started`, `in progress`, `blocked`,
   `merged`. `blocked` always has a ruling below it saying what on.
 - **Current** is what a resuming session needs to know it is mid-stage rather than between stages.
-  The worker name matters: a handoff or a context-budget line is traced through it.
+  The worker name matters: a handoff or a context-budget line is traced through it. **`Branch head`,
+  `Done so far` and `Last reported` are what stop the next session having to go and read the branch
+  to find out where the last one got to** — the moment it has to do that, this file has stopped being
+  sufficient and the rule above is broken. A measurement that caused an escalation goes in
+  `Last reported` with its date, because "the estimator came in at 0.012" is useless if nobody can
+  tell whether that was before or after someone tried to fix it.
 - **Rulings** are the expensive thing to lose. A ruling given in a reply and not written here is
   gone at the next compaction, and the next worker will make the opposite call in good faith. Each
   one names the part it binds — a ruling about part 2 does not silently govern part 5.
