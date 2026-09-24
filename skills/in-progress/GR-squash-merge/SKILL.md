@@ -1,10 +1,15 @@
 ---
 name: GR-squash-merge
 disable-model-invocation: false
-description: Land an issue's approved PRs across every Evo repo — check the ready record still holds against a main that has moved, then squash-merge each in contract order.
+description: Land an issue's approved PRs across every repo it touches — check the ready record still holds against a main that has moved, then squash-merge each in contract order.
 ---
 
 # Squash Merge Skill
+
+**Out of the loop, deliberately.** `GR-manage` lands parts with `GR-pr`'s rebase-merge instead,
+because squash-merging erases the one-commit-per-step history a plan produced — the history that
+makes a later bisect or revert land on the step that caused it. This stays installable for landing a
+multi-repo issue by hand.
 
 `GR-rebase` verified this stack on the robot and pinned what it verified. Between then and now,
 `main` moved and review changed the branches. This skill decides whether that pinned verdict is
@@ -18,7 +23,7 @@ of choosing a recovery.
 
 ## Phase 0 — Scope and order
 
-Build the repo/branch table per `~/.claude/GR-references/scope-a-solved-issue.md`, then for each:
+Build the repo/branch table from the issue's linked branches, then for each:
 
 ```sh
 gh pr view <pr> --repo G-S-Rodrigues/<repo> --json number,title,state,reviewDecision,mergeStateStatus,statusCheckRollup,headRefName
@@ -26,7 +31,7 @@ gh pr view <pr> --repo G-S-Rodrigues/<repo> --json number,title,state,reviewDeci
 
 Propose a **merge order** and say what it rests on. These are separate repos with separate `main`s,
 so order is not about rebasing — it is about never leaving a `main` that depends on something
-unmerged. A repo whose contract others consume (`GR-ros2-messages`, then producers, then relays,
+unmerged. A repo whose contract others consume (the interface-defining repo first, then its producers, then its consumers,
 then the frontend) lands first.
 
 Report `statusCheckRollup` as it comes back; where a PR reports no checks, say that rather than
@@ -61,8 +66,8 @@ git diff <recorded-main-sha>..origin/main -U0 | grep -nE '<item>|<item>|<item>'
 ```
 
 Run each item against **every in-scope repo's** main movement, not only the repo the item came from.
-The drift this stack produces lives between repos: a `robot_msgs` field that changed on
-`GR-ros2-messages`' `main` breaks a `GR-gateway` branch that no conflict marker will ever flag.
+The drift this stack produces lives between repos: a message field that changed on the
+interface repo's `main` breaks a consumer's branch that no conflict marker will ever flag.
 
 Two verdicts:
 
@@ -93,7 +98,7 @@ Present subject and body exactly as they will be committed, and wait. Edits from
 the draft; re-present and wait again.
 
 ```sh
-gh pr merge <pr> --repo EvoWorkforce/<repo> --squash --subject "<approved subject>" --body "<approved body>"
+gh pr merge <pr> --repo <owner>/<repo> --squash --subject "<approved subject>" --body "<approved body>"
 ```
 
 After each merge, report the merge commit and stop before the next repo. From that point `main`

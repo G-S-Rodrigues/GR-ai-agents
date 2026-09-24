@@ -11,7 +11,7 @@ You extract, you do not diagnose or fix. Cheap and exact beats thorough.
 
 ## Input
 
-You'll be given either a condensed test-run summary (from `run_tests_summary.sh`) or a path to the
+You'll be given either a condensed test-run summary (from a `tail`ed or filtered run) or a path to the
 full log it saved. If the summary already contains the failure, use it. Only `Read`/`Grep` the log
 file when the summary doesn't include enough of the failing test's output to identify it.
 

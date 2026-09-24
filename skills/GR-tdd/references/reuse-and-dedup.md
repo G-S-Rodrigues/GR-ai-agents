@@ -16,9 +16,9 @@ grep -rn "<likely name>" src/ test/          # by name
 grep -rn "<distinctive expression or constant>" src/   # by behaviour
 ```
 
-Look in the places shared logic already lives: `features/*/*.mjs` (GR-ice-signaler),
-`pointcloud_codec.py` and module-level helpers (GR-gateway), `adapter_common` (GR-hal),
-`path_walk_common_interfaces` (GR-aom), `test/helper_libraries/` (test-side).
+Look where shared logic already lives in this repo: the ROS-free core each package is a shell over,
+the common package the others depend on, the shared test keywords. The repo's layout section in
+`CLAUDE.md` names them.
 
 Then take the **highest** option that works:
 
@@ -39,16 +39,18 @@ Run this before choosing option 2 or 3. Every item is countable, and the counts 
   message contract, a separate build, a separate deploy, and separate CI.
 - **Test cover** — do tests exercise the function today? If none, a refactor is blind: either add a
   characterisation test first (RED against existing behaviour) or drop to option 4.
-- **Public interface** — is it an exported `.mjs` symbol used by other modules, a field in a
-  `robot_msgs` msg/srv, a ROS2 parameter name, a topic name, or an installed C++ header under
-  `include/`? Changing those is an interface change, not a refactor.
+- **Public interface** — is it a field in a message or service, a ROS parameter name, a topic name,
+  or an installed C++ header under `include/`? Changing those is an interface change, not a
+  refactor.
 - **Behaviour preserved?** If any existing call site's behaviour changes, this is no longer a dedup —
   split it into its own step with its own test.
 
 ## Hard stops → duplicate, and say why
 
 - The reuse would cross a repo boundary.
-- It would change a `robot_msgs` message/service/action definition, or a topic/service name.
+- It would change a message, service or action definition, or a topic or service name.
+- It would replace an existing algorithm rather than add beside it, where the repo's ADRs say
+  implementations are added and never replaced.
 - The existing function has no test and characterising it is larger than the task itself.
 - Call sites cannot be enumerated.
 
@@ -72,11 +74,11 @@ taken, and the count that justified it:
 - `formatMapStatus` — nothing comparable; new pure function in `features/map_pcl/mapPointCloud.mjs`.
 - point-count abbreviation — `mapViewUtils.mjs:abbreviateCount` already does it (3 call sites, all in
   `features/map_pcl/`, covered by `mapViewUtils.test.mjs`) → **reuse as-is**.
-- `getPointCloudBounds` — needs a Z-only variant → **extend in place** with an optional `axis`
-  argument defaulting to current behaviour (2 call sites, both `App.jsx`, covered) → existing tests
-  must stay green unedited.
-- PCD header parsing — `GR-gateway/pointcloud_codec.py` has it, but that is another repo
-  (cross-repo hard stop) → **duplicate** the header read in the test helper.
+- `track_bounds()` — needs a curvature-only variant → **extend in place** with an optional argument
+  defaulting to current behaviour (2 call sites, both covered) → existing tests must stay green
+  unedited.
+- Centreline arc-length — another repo has it, but that is a cross-repo hard stop → **duplicate** it
+  in the test helper, and say why.
 ```
 
 ## The line against the TDD rule

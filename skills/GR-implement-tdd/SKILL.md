@@ -4,7 +4,7 @@ disable-model-invocation: false
 description: Execute an existing implementation plan from ~/gitroot/.scratch/<feature>/plans/ test-first — red, green, verify, per step. Use when the user asks to implement, execute, or carry out a plan, or says the plan is approved and to build it.
 ---
 
-# Evo Implement TDD
+# Implement TDD
 
 Execute one plan file. Evidence before claims, always.
 
@@ -51,8 +51,8 @@ know it tests the right thing.
 
 A runner that cannot fail, or that runs an installed copy instead of your edits, reports success on
 nothing at all. Before trusting the first run, confirm its exit code reflects failures and that it
-runs the working tree. The Evo ROS2 repos' `test/setup/run_tests.sh` has both traps;
-`working-in-the-devcontainer.md` has the command that defeats them.
+runs the working tree. Where a repo wraps its suite in a script, check both before trusting the
+first green; `working-in-the-devcontainer.md` has the containerised form.
 
 Confirm the failure is the *expected* one. A test failing for the wrong reason (import error, QoS
 mismatch, wrong topic) is not RED — fix the test first.
@@ -67,8 +67,7 @@ mismatch, wrong topic) is not RED — fix the test first.
   `--test <name>`) — not the suite. These runs are short; read their output directly.
 - The regression run happens once per step, with the command `testing.md` names for per-commit
   verification (the pre-commit gate, where one exists). Keep its log out of context: pipe it through
-  `tail`, or use `${HOME}/gitroot/GR-ai-agents/scripts/run_tests_summary.sh` where the repo runs
-  `run_tests.sh`.
+  `tail` or `grep`.
 - If that output shows a failure whose cause isn't immediately obvious, dispatch the
   `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
   inline — it returns the failing test, the error text, and a likely-cause category in a few lines.

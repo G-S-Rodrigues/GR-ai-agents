@@ -1,9 +1,9 @@
 ---
 name: GR-domain-modeling
-description: Sharpen an Evo repo's domain language — challenge a fuzzy or overloaded term and record the resolution in CONTEXT.md. Use when a term is being defined or disputed, or when another skill needs the glossary maintained.
+description: Sharpen a repo's domain language — challenge a fuzzy or overloaded term and record the resolution in CONTEXT.md. Use when a term is being defined or disputed, or when another skill needs the glossary maintained.
 ---
 
-# Evo Domain Modeling
+# Domain Modeling
 
 Sharpen the domain language *while* it is being decided, and write each resolution down the moment it
 lands. Reading `CONTEXT.md` for vocabulary is not this skill — every workflow skill already does
@@ -25,8 +25,8 @@ reconnecting mid-relay, a second robot joining the same signaler, a map request 
 has published. Vague terms survive discussion; they do not survive a scenario.
 
 **Cross-reference the code.** When the user states how something works, check. A contradiction is a
-finding: "`config.py:47` resolves `robot_id` as a ROS param with an env override, but you're
-describing it as fixed per-image — which is it?"
+finding: "`config.py:47` resolves it as a ROS parameter with an env override, but you're describing
+it as fixed per-image — which is it?"
 
 **Write it down inline.** The moment a term resolves, update `CONTEXT.md` — that turn, not at the
 end. Batching is how a resolved distinction gets flattened back into whichever word survived. Format
@@ -45,15 +45,15 @@ Two tiers, and the test is **does the term travel**:
 | Stack | terms two or more repos must agree on | `~/.claude/GR-references/stack-glossary.md` |
 | Repo | terms meaningful in one repo only | that repo's `CONTEXT.md` |
 
-`Robot ID` travels — deployment, addressing, config, and tests all use it. `Relay port range` does
-not; it is central to GR-ice-signaler and meaningless in GR-hal.
+A term travels when deployment, addressing, config and tests across several repos all use it. A term
+central to one repo and meaningless in the next stays local.
 
 Decide the tier before writing, and say which you chose. A term written to both tiers is the failure
 this split exists to prevent — the copies disagree eventually, and the local one wins by being
 closer. Promoting a term from a repo glossary to the stack one means deleting it from the repo
 glossary in the same edit.
 
-Where a shared term is really a contract — a `robot_msgs` shape, a topic name, a QoS profile — the
+Where a shared term is really a contract — a message shape, a topic name, a QoS profile — the
 glossary can name it but cannot hold it. Raise an ADR as well.
 
 Artifacts go to `${HOME}/gitroot/.scratch/<feature>/`, as all per-feature work does — see

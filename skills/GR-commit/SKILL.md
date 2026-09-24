@@ -1,19 +1,19 @@
 ---
 name: GR-commit
 disable-model-invocation: false
-description: Create a scoped, single-sentence commit in an Evo repo — stage only the files belonging to the implementation being committed, and write a commit message that completes "This commit ...", approved by the user before committing.
+description: Create a scoped, single-sentence commit — stage only the files belonging to the implementation being committed, and write a commit message that completes "This commit ...", approved by the user before committing.
 ---
 
-# Evo Commit Skill
+# Commit Skill
 
-Use this skill when the user asks to commit changes in an Evo repo.
+Use this skill when the user asks to commit changes.
 
 ## Procedure
 
 1. Check the current branch with `git branch --show-current`. Work always happens on a branch created for a specific GitHub Projects task, never directly on `main`. If the current branch is `main`, stop and alert the user instead of committing — don't create a branch on their behalf or commit anyway, since you don't know which task this work belongs to.
 2. Run `git status` / `git diff` and identify which changed or untracked files actually belong to the implementation being committed. If the working tree has unrelated changes sitting around (other in-progress work, stray edits, unrelated generated files), leave them out — don't sweep them in just because they're modified.
 3. Stage only those files by name (`git add <file> ...`). Avoid `git add -A` / `git add .` since that stages everything indiscriminately.
-4. If the repo has a `.pre-commit-config.yaml`, read `docs/agents/lint-and-precommit.md` first, if it exists — it is the authority on which hooks are actually live in this repo and which are inert boilerplate. Where it is absent, read `.pre-commit-config.yaml` itself. Then run pre-commit against just the staged files before writing the commit message; verification should track the same scope as the commit, not the whole repo. These repos' tooling lives in a devcontainer, not on the host, so run it there. The repo's own CLAUDE.md names the container and the working directory the tree is mounted at (`$HOME/workspace` in the Evo devcontainers; other repos differ):
+4. If the repo has a `.pre-commit-config.yaml`, read `docs/agents/lint-and-precommit.md` first, if it exists — it is the authority on which hooks are actually live in this repo and which are inert boilerplate. Where it is absent, read `.pre-commit-config.yaml` itself. Then run pre-commit against just the staged files before writing the commit message; verification should track the same scope as the commit, not the whole repo. These repos' tooling lives in a container, not on the host, so run it there. The repo's own CLAUDE.md names the container and the working directory the tree is mounted at:
    ```
    docker exec <container_name> bash -lc 'cd <workdir> && source setup.sh && pre-commit run --files <staged files>'
    ```

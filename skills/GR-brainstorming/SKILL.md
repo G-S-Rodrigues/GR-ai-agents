@@ -4,7 +4,7 @@ disable-model-invocation: true
 description: Interrogate an idea before designing it — challenge assumptions, expose what hasn't been considered, then present genuinely different options and a recommendation. Use when the user has an idea, plan, or approach and wants it questioned, stress-tested, grilled, pressure-tested, challenged, explored, or brainstormed, or wants to choose between approaches. Also use before writing a spec.
 ---
 
-# Evo Brainstorming
+# Brainstorming
 
 Interrogate first, recommend second. The job is to surface what the user has not thought about — not
 to agree, and not to reach a recommendation quickly.

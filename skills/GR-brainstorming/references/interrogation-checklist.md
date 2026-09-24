@@ -22,46 +22,47 @@ already settles it.
 
 ## ROS2 contract [ask]
 
-- Topic and service names: new, renamed, or reused? A rename is a fleet-wide breaking change.
+- Topic and service names: new, renamed, or reused? A rename is a breaking change for every
+  consumer, and nothing flags it.
 - **QoS**: reliable vs best-effort on both ends. A best-effort publisher never matches a reliable
   subscriber and the failure is silent — it looks like "no data", not an error.
-- Message/service/action definitions live in `GR-ros2-messages` and are installed image-wide at
-  `/opt/ros_custom_msgs`. Changing one means rebuilding every dependent repo's image.
+- Message, service and action definitions are a contract. Changing one means rebuilding everything
+  that depends on it, and a consumer that still compiles can read a field nothing sets any more.
 - Node parameters: is the new knob a parameter, an env var, or a literal? Parameters that tests
   cannot override force the test to work around the default.
 
-## Fleet and addressing [ask]
+## Configuration and addressing [ask]
 
-- Is anything derived from `robot_id`? WebRTC port ranges are (`8000 + robot_id` WHEP TCP,
-  `9000 + robot_id` video UDP) and must be router-forwarded per robot.
-- `ROS_DOMAIN_ID` and `cyclonedds.xml` — does this change cross-node visibility?
-- Does behaviour differ per robot model (G1 vs GO2W)? `GR-hal` adapters and `GR-slam` launch files
-  are per-model; a change in one is not automatically right for the other.
+- Is anything derived from a configured identifier or a vehicle parameter? A value that disagrees
+  with the thing it describes is invisible — the run completes and reports a plausible number.
+- `ROS_DOMAIN_ID` and the RMW configuration — does this change cross-node visibility?
+- Does behaviour differ per platform or per track? A change right for one is not automatically right
+  for the other.
 
 ## Runtime and lifecycle [ask]
 
-- What happens on reconnect or restart? A signaler container restart currently drops live WebRTC
-  sessions and the controller's stored robot `peer_id` goes stale.
-- What happens when the thing being called is absent — service unavailable, no map yet, robot
-  disconnected? Silent no-op or visible failure?
+- What happens on restart? State held only in a process is gone, and a stale identifier held by
+  something else outlives it.
+- What happens when the thing being called is absent — service unavailable, no map yet, a pose
+  source not yet publishing? Silent no-op or visible failure? A late-starting participant is a
+  classic source of a latched fault at t=0.
 - Rate limits and back-pressure: is anything throttled, and does the new path bypass it?
-- Payload size: is there a frame or buffer ceiling in the way (engine.io `maxHttpBufferSize`)?
+- Timing: does anything here read the clock, and does it use simulated time when the rest does?
 
-## Operator safety [call]
+## Safety [call]
 
-- Can a new control steal keyboard focus while the operator is driving? WASD is bound for locomotion —
-  a focusable slider or button can swallow movement keys.
 - Can stale data be mistaken for fresh? A map, pose, or detection that persists after its source
-  stopped is worse than an empty panel.
-- Can the operator act on stale data — download it, send it, act on a stale position?
+  stopped is worse than no data at all.
+- Does a failure surface, or does it degrade quietly into a plausible number?
+- Is there a path where a safety stop latches with no fault anywhere in the logs?
 
 ## Build and test reachability [call]
 
 - Does verification need the devcontainer? Claude runs on the host; the host has none of the toolchain.
-- Does the test runner test the **installed** package rather than local edits? (`run_tests.sh` sources
-  `/opt/<pkg>/setup.bash` in the ROS2 repos.)
-- Which tier can actually reach this — pure unit, in-repo `.robot`, `GR-tests` cross-repo, or only
-  manual? What will stay unverified, and is that acceptable?
+- Does the test runner test the **installed** package rather than local edits, and does its exit
+  code actually reflect a failure?
+- Which tier can actually reach this — pure unit, integration, `.robot`, or only manual? What will
+  stay unverified, and is that acceptable?
 - Is there an existing test that this change will break? That is expected, not a regression — but it
   must be named up front.
 
