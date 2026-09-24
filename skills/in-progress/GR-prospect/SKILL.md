@@ -1,10 +1,14 @@
 ---
 name: GR-prospect
 disable-model-invocation: true
-description: Scope a new GitHub issue before designing it — determine which Evo repos it touches, trace the contract end to end, find the open PRs already doing part of it, and write the findings to disk. Facts only; the design decisions are parked for GR-brainstorming.
+description: Scope a new GitHub issue before designing it — determine which repos it touches, trace the contract end to end, find the open PRs already doing part of it, and write the findings to disk. Facts only; the design decisions are parked for GR-brainstorming.
 ---
 
-# Evo Prospect
+# Prospect
+
+**Out of the loop, deliberately.** Its job is scoping across repos, and `GR-brainstorming` now ends
+by creating the issue and splitting the spec into parts, which covers that for single-repo GR work.
+This stays installable for a genuinely cross-repo issue.
 
 Turn one issue into a grounded scope report.
 
@@ -12,7 +16,7 @@ Turn one issue into a grounded scope report.
 
 ## Phase 0 — Frame
 
-1. Read the issue: `gh issue view <n> --repo EvoWorkforce/GR-documentation --json number,title,body,labels,comments`.
+1. Read the issue: `gh issue view <n> --repo <owner>/<issue-repo> --json number,title,body,labels,comments`.
 2. Resolve `<feature>` as the branch name GitHub itself would generate: the issue number, then the
    **whole** title lowercased and hyphenated, nothing dropped. Issue 62, *Mark different waypoint types
    in the map in different colours*, gives `62-mark-different-waypoint-types-in-the-map-in-different-colours`.
@@ -50,8 +54,8 @@ unproven assumptions.
 and is the finding most likely to save a rewrite:
 
 ```sh
-gh pr list --repo EvoWorkforce/<repo> --state all --limit 20 --json number,title,state,updatedAt,headRefName
-gh api graphql -f query='{repository(owner:"EvoWorkforce",name:"GR-documentation"){issue(number:<n>){
+gh pr list --repo <owner>/<repo> --state all --limit 20 --json number,title,state,updatedAt,headRefName
+gh api graphql -f query='{repository(owner:"<owner>",name:"<issue-repo>"){issue(number:<n>){
   linkedBranches(first:20){nodes{ref{name repository{nameWithOwner}}}}}}}'
 ```
 
@@ -66,7 +70,7 @@ later reads the top three sections and stops:
 ```markdown
 # Prospect: <topic>
 **Date:** YYYY-MM-DD
-**Issue:** [EvoWorkforce/GR-documentation#<n>](url)
+**Issue:** [<owner>/<issue-repo>#<n>](url)
 
 ## Summary
 (the shortest sound path, and the minimum repo scope, in under ten lines)
@@ -103,8 +107,8 @@ Create them through GitHub so they appear in the issue's Development panel — a
 pushed afterwards is **not** linked, and nothing links it retroactively:
 
 ```sh
-gh issue view <n> --repo EvoWorkforce/GR-documentation --json id --jq .id
-gh api graphql -f query='{repository(owner:"EvoWorkforce",name:"<repo>"){id defaultBranchRef{target{oid}}}}'
+gh issue view <n> --repo <owner>/<issue-repo> --json id --jq .id
+gh api graphql -f query='{repository(owner:"<owner>",name:"<repo>"){id defaultBranchRef{target{oid}}}}'
 gh api graphql -f query='mutation($i:ID!,$r:ID!,$o:GitObjectID!,$n:String!){createLinkedBranch(input:{issueId:$i,repositoryId:$r,oid:$o,name:$n}){linkedBranch{ref{name}}}}' \
   -f i=<issueId> -f r=<repoId> -f o=<mainHeadOid> -f n=<branch>
 ```

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Install the Evo agent skills into your local harness by symlink, so a `git pull`
+# Install the agent skills into your local harness by symlink, so a `git pull`
 # in this repo updates every installed skill with no reinstall.
 #
 #   ./scripts/install.sh                 install skills + agents + references

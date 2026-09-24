@@ -1,8 +1,8 @@
 # Working in the devcontainer
 
-Every repo except `GR-configs` has a `.devcontainer/` holding the toolchain: ROS2 Humble,
-`/opt/ros_custom_msgs`, and pinned lint and test versions. Claude runs on the **host**, which has
-none of it.
+A repo's container holds its toolchain — ROS, pinned lint and test versions, and whatever else the
+build needs. Claude runs on the **host**, which has none of it. The repo's own `CLAUDE.md` names its
+container and how it is started.
 
 So the split is:
 
@@ -16,10 +16,10 @@ So the split is:
 docker exec -it <container> bash -lc 'cd "$HOME/workspace" && source setup.sh && <command>'
 ```
 
-**The `cd` is load-bearing.** `bash -lc` starts in `$HOME`, one level above the mounted tree, so a
-bare `source setup.sh` fails with "No such file or directory" — every time, in every repo. `$HOME`
-rather than a literal path because the user is `ubuntu` in the ROS repos and `node` in
-GR-ice-signaler.
+**The `cd` is load-bearing.** `bash -lc` starts in `$HOME`, which is usually not the mounted tree,
+so a bare `source setup.sh` fails with "No such file or directory". Take the working directory from
+the repo's `CLAUDE.md`; some repos mount at `$HOME/workspace`, others elsewhere, and some need no
+`source` line at all.
 
 The container name is `container_name:` in the repo's `.devcontainer/docker-compose.yml` — the source
 of truth, over any table listing them. Start a stopped one with the wrapper, safe to do unattended:
@@ -61,7 +61,7 @@ Another agent, or the user in VS Code, may be working in the same container at t
 isolated:
 
 - Two `colcon build` runs write the same `build/` and `install/` trees.
-- `run_tests.sh` writes a fixed output directory, so a second run overwrites the first's report.
+- A suite that writes a fixed output directory has its report overwritten by a second run.
 - Two test runs on one `ROS_DOMAIN_ID` discover each other's nodes, and a suite can see topics from a
   run it knows nothing about.
 
@@ -87,46 +87,39 @@ devcontainer too:
 for c in $(docker ps --format '{{.Names}}'); do echo "== $c =="; docker exec "$c" ps -ef | grep -E 'ros2|robot' | grep -v grep | grep -v defunct; done
 ```
 
-Discovered by running `GR-gnss`'s and a sibling repo's suites back to back without checking this:
-identical test counts, same test suite, produced different failing cases and different failure
-symptoms depending on what else happened to be live in another repo's container at the time. A rerun
-with every other container's ROS processes confirmed quiet resolved it to the expected result.
+Seen in practice: the same suite, run twice with identical test counts, produced different failing
+cases and different symptoms depending on what else was live in another container at the time. A
+rerun with every other container's ROS processes confirmed quiet resolved it to the expected
+result.
 
 ## Running a repo's tests
 
-```sh
-${HOME}/gitroot/GR-ai-agents/scripts/run_tests_summary.sh <container> "source setup.sh && colcon build --symlink-install && RELEASE=true ./test/setup/run_tests.sh"
-```
+The command is the repo's own — its `docs/agents/testing.md` and its `CLAUDE.md` name the single
+test, the per-step suite, and the done gate. Never carry one repo's invocation to another.
 
-The wrapper runs the same command shown below inside the container, but prints only the exit code, a
-capped block of context around real failure markers, and the last 40 lines — not the full log. It
-`cd`s to `$HOME/workspace` itself, so the inner command does not repeat it (override with
-`RUN_TESTS_WORKDIR` for a repo mounted elsewhere). **A green run prints no failure block at all** — if
-you see one, something actually failed; if the block is truncated, the notice says so and the full log
-has the rest. The full output is always saved to disk, and the wrapper's last line is the path to it.
-Read that log directly (`docker exec -it <container> bash -lc "..."`) if you need to debug the wrapper
-itself or don't have it available.
+Pipe long output through `tail` or `grep` rather than reading it inline, and dispatch
+`test-failure-triage` on a failure whose cause is not immediately obvious.
 
-Both halves of the inner command are load-bearing, because `run_tests.sh` has two traps:
+**Two traps to rule out before trusting a green run**, because both report success on nothing:
 
-- **It swallows failures** unless `RELEASE=true` — the script runs `robot ... || true`, so its exit
-  code means nothing in the default path. Set the variable, or read the report it leaves in
-  `/home/ubuntu/results_builder`.
-- **It tests the installed package, not your edits** — it sources `/opt/<pkg>/setup.bash`. Rebuild
-  with `--symlink-install` first, or the run reports on stale code.
+- **A runner that swallows failures.** Confirm its exit code actually changes when a test fails.
+  A wrapper that ends in `|| true`, or that only writes a report file, has an exit code that means
+  nothing.
+- **A runner that tests the installed package, not your edits.** Where a build installs into a
+  separate prefix, build with `--symlink-install` first, or the run reports on stale code.
 
-Where a repo has no `test/setup/run_tests.sh`, say that no suite exists rather than substituting
-another command — the absence is itself the finding.
+Where a repo has no suite, say so rather than substituting another command — the absence is itself
+the finding.
 
 ## Running suites in parallel
 
-One repo per container, so parallel runs never collide on `build/`, `install/`, or the fixed
-directory `run_tests.sh` writes — those are per-container. What they collide on is the ROS graph.
+One repo per container, so parallel runs never collide on `build/`, `install/`, or a fixed report
+directory — those are per-container. What they collide on is the ROS graph.
 
 Give each run its own domain and they stop seeing each other:
 
 ```sh
-run_tests_summary.sh <container> "export ROS_DOMAIN_ID=<n> && source setup.sh && colcon build --symlink-install && RELEASE=true ./test/setup/run_tests.sh"
+docker exec <container> bash -lc 'cd <workdir> && export ROS_DOMAIN_ID=<n> && source setup.sh && <the repo's suite command>'
 ```
 
 `ROS_DOMAIN_ID=10` is baked into every devcontainer **image**, so it is not in
@@ -143,5 +136,5 @@ domain is the fix for that flakiness rather than a workaround for it.
 Each run is a full `colcon build`, so N repos in parallel is N compiles on one host. Fan out across
 repos; keep one run per container.
 
-This is one repo's own suite. The cross-repo system tests in `GR-tests` are a separate tier with
-their own setup, and a green run here says nothing about them.
+This is one repo's own suite. A higher tier with its own setup is a separate run, and a green run
+here says nothing about it.

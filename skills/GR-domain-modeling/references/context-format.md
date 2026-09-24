@@ -15,15 +15,15 @@ live in `docs/agents/`. Decisions live in `docs/adr/`.
 
 ## Language
 
-**Robot ID**:
-The fleet's identifier for a single robot. Resolved through config — a ROS2 parameter with a
-`ROBOT_ID` env override — never a literal in source.
-_Avoid_: robot number, unit id, serial
+**Term**:
+What it means here, in one or two sentences. Where it is resolved from, when that is the part people
+get wrong — a parameter with an env override, say, rather than a literal in source.
+_Avoid_: the spellings people reach for instead
 
-**Session**:
-One live WebRTC connection between a viewer and a robot, from negotiation to teardown. Sessions do
-not survive a signaler restart.
-_Avoid_: call, stream, connection
+**Another term**:
+One sentence of meaning, then the boundary that makes it distinct from the term it gets confused
+with.
+_Avoid_: the near-synonyms
 
 ## Flagged ambiguities
 

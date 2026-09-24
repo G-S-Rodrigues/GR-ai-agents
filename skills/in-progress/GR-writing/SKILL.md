@@ -5,7 +5,7 @@ description: Write or rewrite a document a person will read, following the share
 argument-hint: "a file path, pasted text, or nothing to take the last thing produced"
 ---
 
-# Evo Writing
+# Writing
 
 Produce prose a teammate reads without noticing it was generated. Read
 `~/.claude/GR-references/writing-for-people.md` first and follow it; this skill is the procedure

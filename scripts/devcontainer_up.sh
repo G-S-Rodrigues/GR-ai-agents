@@ -42,8 +42,7 @@ if [[ ! -f "${compose_file}" ]]; then
 fi
 
 # Read the image and container names out of the compose file rather than guessing them. The naming
-# is not uniform: GR-ros2-messages builds GR-ros2-messages:devcontainer but names the container
-# GR-ros-messages-devcontainer.
+# is not uniform: a repo may build <name>:devcontainer while naming the container something else.
 read -r service image container < <(
     docker compose -f "${compose_file}" config --format json 2>/dev/null | python3 -c '
 import json, sys

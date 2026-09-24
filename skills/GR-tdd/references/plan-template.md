@@ -59,7 +59,7 @@ Test cases as a table when there are several:
 
 | ID | Behaviour |
 |---|---|
-| GATEWAY-1200 | publish a cloud → `type:"map"` event decodes to the expected point count |
+| PKG-1200 | publish a pose → the controller emits the expected command |
 
 Notes: constraints discovered while planning — what cannot be done and how the step works around it.
 
@@ -72,12 +72,12 @@ test -f /.dockerenv && echo "in container" || echo "NOT in container"
 ```
 
 Each command below is the repo's own, from `docs/agents/testing.md` and
-`docs/agents/lint-and-precommit.md`. The Evo ROS2 form is shown; a repo that names its own gate
-uses that instead.
+`docs/agents/lint-and-precommit.md`, and its `CLAUDE.md` names the container and working directory.
+The shape is shown; the command is never carried over from another repo.
 
 ```sh
 # the suite / done gate
-docker exec -it <container> bash -lc 'cd <workdir> && source setup.sh && colcon build --symlink-install && RELEASE=true ./test/setup/run_tests.sh'
+docker exec <container> bash -lc 'cd <workdir> && <the repo's done gate>'
 ```
 
 ```sh

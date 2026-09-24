@@ -39,7 +39,7 @@ what an already-open file delivers for nothing.
 
 ### Writing the description
 
-- Lead with the verb and the leading word. "Ground work in an Evo repo…", not "This skill helps
+- Lead with the verb and the leading word. "Ground work in a repo…", not "This skill helps
   you…".
 - List **genuinely distinct** trigger branches. "before asking a question, writing a spec or plan,
   executing a plan, reviewing a diff, or debugging" is one branch — *any work here* — wearing five
@@ -93,7 +93,7 @@ still a no-op.
    reference? Then it belongs in exactly one of them and the other should point. Two copies is a
    drift bug with a delay fuse.
 3. **Volatility test.** Will this line be false in a month? Enumerated state goes stale — "only
-   GR-gateway and GR-ice-signaler are migrated" is a fact the filesystem already knows. State the
+   these two repos are migrated" is a fact the filesystem already knows. State the
    *rule* ("read `docs/agents/testing.md`; where it is missing, fall back to the stack defaults")
    and let the check answer it.
 4. **Audience test.** Is this addressed to the agent running the skill, or to the human maintaining

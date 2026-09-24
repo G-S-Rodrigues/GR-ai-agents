@@ -94,9 +94,9 @@ spec it implements can share a summary without colliding.
 
 ## Both trees are gitignored
 
-`docs/`, `.scratch/`, and `.claude/` are all in `.gitignore` in the repos set up so far
-(GR-gateway, GR-ice-signaler). Nothing written to either tree reaches the team until that changes —
-do not assume a teammate can see a file you wrote.
+`docs/`, `.scratch/`, and `.claude/` are in `.gitignore` in the repos set up so far. Nothing written
+to either tree reaches the team until that changes — do not assume a teammate can see a file you
+wrote. A repo that needs one of these committed un-ignores that path explicitly.
 
 ## Tier decision
 

@@ -1,8 +1,8 @@
 # CLAUDE.md — working in GR-ai-agents
 
-This repo holds the skills, not the robot code. Editing a skill here changes how every teammate's
-agent behaves after their next `git pull`, so the bar is different from ordinary code: a change is
-cheap to make and expensive to get wrong.
+This repo holds the skills, not the robot code. They are for **`GR-roboracer` and the GR projects
+after it**. Editing a skill changes how every teammate's agent behaves after their next `git pull`, so the bar is different from
+ordinary code: a change is cheap to make and expensive to get wrong.
 
 ## Layout
 
@@ -29,7 +29,10 @@ Every skill installed by the script is a **symlink into this repo**. A teammate 
 1. Start in `skills/in-progress/`. Install it with `--with-drafts` and use it on real work.
 2. Promote by moving to `skills/` and adding a row to the `README.md` table.
 3. `./scripts/install.sh` again after adding, renaming, or removing a skill — new entries need a new
-   symlink. (Editing an existing skill needs nothing; the link already points at it.)
+   symlink. (Editing an existing skill needs nothing; the link already points at it.) Both
+   installers glob `skills/*/` and `agents/*.md`, so there is no list to edit — but **promoting** a
+   skill out of `skills/in-progress/` leaves a `--with-drafts` symlink dangling until
+   `uninstall.sh` and `install.sh` are re-run.
 
 ## Writing skills that stay predictable
 
@@ -67,17 +70,32 @@ Changing any of these means changing skills, so they're recorded here rather tha
 - **Claude runs on the host; the toolchain does not.** Every build/test/lint command is
   `docker exec -it <container> bash -lc "source setup.sh && <command>"`. A skill that emits a bare
   `colcon build` is broken.
-- **`${HOME}/gitroot` is not a git repo** — it's ~13 independent repos side by side. "The repo"
-  always means one of them.
+- **`${HOME}/gitroot` is not a git repo** — it's independent repos side by side. "The repo" always
+  means one of them.
 - **Two artifact trees.** Committed standing knowledge in `<repo>/docs/{agents,adr}` plus
-  `CONTEXT.md`; per-feature work in `<scratch>/<feature>/{grill,spec,plans,review,ready}/`. Reach decides the
-  tree — cross-repo work goes to `gitroot/.scratch/`. Full rules in `references/where-documents-go.md`.
+  `CONTEXT.md`; per-feature work in
+  `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,open_topics}/`. One location, and
+  it sits outside every repo working tree so a `git clean -xdf` cannot reach it. Full rules in
+  `references/where-documents-go.md`.
+- **A run is driven from disk, not from a session.** `GR-manage` keeps the ledger and dispatches one
+  subagent per stage; a fresh session resumes from the ledger alone. Anything a coordinator knows
+  only in context is lost at its next compaction.
 - **Agent docs have named consumers.** A skill names the file it needs — `repo-gotchas.md`,
   `testing.md`, `lint-and-precommit.md` — and the repo's `CLAUDE.md` carries the table pointing at
   them. A skill that says "read `docs/agents/`" is asking for a directory scan that will not happen.
 - **Not every repo is migrated yet.** Where `docs/agents/` is missing, the fallback is
   `references/default-repo-rules.md` — check, don't assume. Which repos are done is a fact the
   filesystem already answers, so it isn't recorded here.
+
+## Inventory
+
+Installed skills: `GR-brainstorming`, `GR-tdd`, `GR-implement-tdd`, `GR-review`, `GR-rebase`,
+`GR-pr`, `GR-commit`, `GR-domain-modeling`, `GR-manage`. Drafts: `GR-prospect` and `GR-squash-merge`
+(both out of the loop, each saying why at the top of its `SKILL.md`), `GR-writing`, `matt-handoff`,
+`matt-writing-great-skills`.
+
+Agents: `GR-researcher`, `GR-inventory`, `GR-test-runner`, `GR-plan-worker`, `lint-fixer`,
+`test-failure-triage`.
 
 ## Don't
 

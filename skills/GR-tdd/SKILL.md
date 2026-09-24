@@ -4,7 +4,7 @@ disable-model-invocation: true
 description: Turn an idea, spec, or grill digest into a test-first implementation plan written to ~/gitroot/.scratch/<feature>/plans/. Use when the user asks for a plan, an implementation plan, a TDD plan, or asks how to implement something; also when a spec is ready to be planned. Produces the plan only — GR-implement-tdd executes it.
 ---
 
-# Evo TDD — plan creation
+# TDD — plan creation
 
 Produce one implementation plan file. Do not implement anything.
 
@@ -72,7 +72,7 @@ Announce the choice with the reason and record it in the plan. In subagent mode:
 Read `references/test-tiers.md`. State per behaviour which tier covers it, **and what stays
 unverified and why**. A plan that silently leaves wiring untested is the failure this section prevents.
 
-The `.robot` tier is not optional filler — for ROS2 and socketio wiring it is the only tier that
+The `.robot` tier is not optional filler — for live-graph wiring it is the only tier that
 reaches the code at all.
 
 ## 7. Apply the reuse gate
@@ -104,9 +104,9 @@ State the resolved path in one line before writing.
   ```sh
   docker exec -it <container> bash -lc 'cd <workdir> && source setup.sh && <command>'
   ```
-  The repo's `CLAUDE.md` names `<container>` and `<workdir>` (`$HOME/workspace` in the Evo
-  devcontainers). `<command>` comes from the repo's `docs/agents/testing.md` (single test, per-step
-  suite, done gate), never from memory of another repo.
+  The repo's `CLAUDE.md` names `<container>` and `<workdir>`, and whether a `source` line is needed
+  at all. `<command>` comes from the repo's `docs/agents/testing.md` (single test, per-step suite,
+  done gate), never from memory of another repo.
   Include this line in the plan so the implementer can confirm where it is running:
   ```sh
   test -f /.dockerenv && echo "in container" || echo "NOT in container"
