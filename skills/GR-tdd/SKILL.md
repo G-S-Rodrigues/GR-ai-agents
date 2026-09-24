@@ -1,6 +1,6 @@
 ---
 name: GR-tdd
-disable-model-invocation: true
+disable-model-invocation: false
 description: Turn an idea, spec, or grill digest into a test-first implementation plan written to ~/gitroot/.scratch/<feature>/plans/. Use when the user asks for a plan, an implementation plan, a TDD plan, or asks how to implement something; also when a spec is ready to be planned. Produces the plan only — GR-implement-tdd executes it.
 ---
 
