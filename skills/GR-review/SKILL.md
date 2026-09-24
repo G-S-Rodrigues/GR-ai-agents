@@ -1,6 +1,6 @@
 ---
 name: GR-review
-disable-model-invocation: true
+disable-model-invocation: false
 argument-hint: "target: plan | branch"
 description: Interrogate an artifact before it goes on — a plan before it is implemented (target plan), or a finished branch before its PR opens (target branch) — in one repo, blast radius first, then correctness.
 ---
