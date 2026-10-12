@@ -38,8 +38,12 @@ gh issue view <n> --repo <owner>/<repo> --json title,body,state
 - `git log --oneline origin/main..HEAD` is non-empty — a branch with nothing ahead needs no PR.
 - `gh pr list --repo <owner>/<repo> --head <branch> --json number,state` is empty — otherwise report
   the existing PR and leave it alone.
+- the repo's `CLAUDE.md` names a merge method — otherwise stop and report before opening.
 
 **Stop.** Report the branch, whether a PR already exists for it, and what you will do.
+
+**Resume landing PR #N.** When dispatched with that wording, the PR exists on purpose (a red ready gate
+was fixed and re-run): skip Phase 1 and go to Phase 2's wait.
 
 ## Phase 1 — Open it
 
@@ -130,29 +134,33 @@ Go to Phase 2.
 ## Phase 2 — Land
 
 The owner's standing authorization: once a PR's text is approved, **land it without asking again**.
-The gate is evidence, not a reply — every check green and the Copilot review triaged.
+The gate is evidence, not a reply — every check green, the ready evidence holding for HEAD, and the
+Copilot review triaged.
 
 1. **Wait on events, not by polling.** Run one background `Monitor` per PR that prints when its
    checks finish and when `copilot-pull-request-reviewer[bot]` submits a review
    (`gh pr checks <pr> --json name,bucket`, `gh api repos/<owner>/<repo>/pulls/<pr>/reviews`).
    Copilot usually reviews within ~5 minutes of creation. After 15 minutes with no review, land
    without it and say so in the report. A PR that reports no checks has not passed any; report
-   that rather than reading absence as green.
+   that rather than reading absence as green. The monitor also polls the `ready/` record for a row
+   for this branch at HEAD, or at an ancestor step 5 covers. Wait up to 30 minutes for it, as for CI.
+   A `fail` row means stop and report "ready gate failed", with no merge; no row at the timeout is
+   reported the same way.
 2. **Triage every Copilot comment** (`gh api repos/<owner>/<repo>/pulls/<pr>/comments`). Each is
    **valid** — the code is wrong or the claim it makes is — or **declined**, with the reason: it
    contradicts an ADR or a gotcha, misreads the diff, or is style the repo's lint already rules on.
    Read the code the comment points at before deciding; the comment is a claim, not evidence.
 3. **Fix the valid ones in a subagent** with `model: sonnet`, carrying the comment text, the file
    and line, and the rule that a behaviour fix goes test-first under `GR-implement-tdd` §2 (RED,
-   GREEN, one scoped commit, `--fast` only; CI re-runs on the push). When another agent is working in the main tree, the fix works in a
-   worktree of the PR branch. The subagent commits; this skill pushes, and re-reads the diff before
+   GREEN, one scoped commit, `--fast` only; CI re-runs on the push). When another agent is working
+   in the main tree, the fix works in a worktree of the PR branch. The subagent commits; this skill pushes, and re-reads the diff before
    it does — a subagent's report is not evidence.
 4. **Reply on each comment**: `fixed in <sha>` or `declined: <reason>`. The trail is what a later
    reader of the PR has instead of this session.
 5. **Merge when the ready evidence holds for HEAD**, re-watching checks after any fix push
    (Copilot does not re-review on push, so its review is not awaited again). All of these hold:
-   - the latest `ready/` row is `pass`, and its branch SHA is HEAD or an ancestor of HEAD;
-   - every commit in `git rev-list <ready-sha>..HEAD` is one of two kinds: a non-merge commit whose
+   - the latest `ready/` row for this branch is `pass`, and its branch SHA is HEAD or an ancestor of HEAD;
+   - every commit in `git rev-list --first-parent <ready-sha>..HEAD` is one of two kinds: a non-merge commit whose
      SHA appears in your own `fixed in <sha>` replies (`gh api repos/<owner>/<repo>/pulls/<pr>/comments`)
      and that ran its test RED/GREEN plus `--fast`; or a merge commit made by step 6 that applied
      with no conflict;
@@ -177,5 +185,6 @@ The gate is evidence, not a reply — every check green and the Copilot review t
 ## Done
 
 The branch has a merged PR, or a stated reason it does not: its text is still in iteration, a check
-is red, or a valid review comment is unfixed. Report the PR's URL, its merge commit, and its Copilot
+is red, there is no ready evidence for HEAD, the ready gate failed, no merge method is named, or a
+valid review comment is unfixed. Report the PR's URL, its merge commit, and its Copilot
 comments with their verdicts.

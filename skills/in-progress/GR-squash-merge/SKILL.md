@@ -41,8 +41,8 @@ reading absence as a pass.
 
 ## Phase 1 — Is the record still live?
 
-Read the most recent file in `<scratch>/<feature>/ready/`. Where none exists, the stack was never
-verified on the robot — say so and hand back to re-running the ready gate.
+Read the latest row for each repo's branch in `<scratch>/<feature>/ready/`. Where none exists, the
+stack was never verified on the robot — say so and hand back to re-running the ready gate.
 
 Three checks per repo, each with one stale answer:
 

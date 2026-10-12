@@ -67,13 +67,15 @@ of re-deriving a cross-repo change from the diffs. A review digest is not a gril
 interrogates an idea before it is built, reviewing interrogates code after it is.
 
 `ready/` is the one directory with a fixed filename rather than a `<summary>`, because `GR-pr` and
-`GR-squash-merge` have to find it without being told where it is: the most recent file there is the
-live record. Each run appends one row to that date's file, and a new date starts a new file, so the
-history of what was verified when stays intact. The ready gate is the command the repo's `CLAUDE.md`
+`GR-squash-merge` have to find it without being told where it is. Parts of one run share the
+directory, so a reader takes the latest row **for its own branch**, from the most recent file that
+has one. Each run appends one row to that date's file, and a new date starts a new file, so the
+history of what was verified when stays intact. `main` SHA is the merge-base of the branch with
+`origin/main` when the gate ran. The ready gate is the command the repo's `CLAUDE.md`
 names as the rule for done. The format:
 
 ```markdown
-# Ready record — <branch>
+# Ready record
 **Date:** <YYYY-MM-DD>
 
 | Branch | Branch SHA | main SHA | Gate | Scope | Result |

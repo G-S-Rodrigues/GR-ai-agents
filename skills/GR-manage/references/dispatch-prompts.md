@@ -100,6 +100,20 @@ to landing.
 <budget>
 ```
 
+## resume landing — `GR-pr` (Sonnet)
+
+Use after a red ready gate's fix was committed and the whole gate re-run.
+
+```
+Resume landing PR #<n> on <branch> in <repo>. You are invoked by GR-manage; the PR exists, so skip
+opening it and go to Phase 2's wait.
+
+A new ready row for this branch will be at <scratch>/<feature>/ready/. Wait for it as you wait for
+CI, then merge per your ready-evidence rule.
+
+<budget>
+```
+
 ## fix review comments — `GR-plan-worker` (Sonnet)
 
 ```
