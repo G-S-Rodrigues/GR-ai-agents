@@ -14,6 +14,9 @@ When a coordinator dispatched this, **the approval gates below are the manager's
 satisfied** — do not stop for them. Escalate instead of asking: report what needs deciding and wait,
 rather than choosing.
 
+Under `GR-manage` the ready gate (§5) is the coordinator's next stage, so report your last step
+committed and its `--fast` green, and leave the ready gate to the coordinator.
+
 Invoked by the owner, every gate is unchanged. One skill, two callers — never a second copy.
 
 ## 1. Load and challenge the plan
@@ -41,8 +44,8 @@ budget clause in its prompt, and that file has the thresholds, the handoff file 
 ## 2. Per step: RED → GREEN → verify
 
 The repo's own `docs/agents/testing.md` names the commands this section runs: a single test, the
-per-step suite, and the **done gate** — the one command that defines done, often restated as "the
-rule" in the repo's `CLAUDE.md`, run once before §5's claim. Run them in the container and working
+per-step suite, and the **ready gate** — the one command that defines done, often restated as "the
+rule" in the repo's `CLAUDE.md`, run once at the end (§5). Run them in the container and working
 directory the repo's `CLAUDE.md` names. Where the repo has no `testing.md`, fall back to
 `~/.claude/GR-references/working-in-the-devcontainer.md`.
 
@@ -59,15 +62,16 @@ mismatch, wrong topic) is not RED — fix the test first.
 
 **GREEN.** The minimal change that satisfies the test. Nothing speculative.
 
-**Verify.** Run the test again, then the rest of the suite once, immediately before the commit gate
-— not after every RED/GREEN iteration in between.
+**Verify.** Run the single test again. The one regression run of the step happens at the commit.
 
 - RED and GREEN confirmation run the single test being worked on, directly, with the single-test
   invocation `testing.md` documents (`pytest -k`, `--gtest_filter=`, `launch_test <file>`, Robot
   `--test <name>`) — not the suite. These runs are short; read their output directly.
-- The regression run happens once per step, with the command `testing.md` names for per-commit
-  verification (the pre-commit gate, where one exists). Keep its log out of context: pipe it through
-  `tail` or `grep`.
+- The regression run happens once per step, at the commit, with the command `testing.md` names for
+  per-commit verification. Where `.git/hooks/pre-commit` exists, the hook is that run: skip
+  `GR-commit` step 4 for plan-step commits. Otherwise run `GR-commit` step 4's `pre-commit run
+  --files`, or the per-commit command `testing.md` names where the repo has no
+  `.pre-commit-config.yaml`. Keep its log out of context: pipe it through `tail` or `grep`.
 - If that output shows a failure whose cause isn't immediately obvious, dispatch the
   `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
   inline — it returns the failing test, the error text, and a likely-cause category in a few lines.
@@ -105,10 +109,13 @@ repo has a `.pre-commit-config.yaml`.
 
 ## 5. Before any completion claim
 
-1. **Identify** the command that proves the claim. For "done", that is the done gate (§2).
-2. **Run** it fresh and complete.
+1. **Identify** the command that proves the claim. For "done", that is the ready gate (§2).
+2. **Run** it fresh and complete, once at the end of the implementation, and again after a failure:
+   the whole gate, not only the failed test.
 3. **Read** the full output — exit code, failure count.
-4. **Then** claim it, with the evidence.
+4. **Record** the run as a row in `<scratch>/<feature>/ready/`, in the format `where-documents-go.md`
+   gives.
+5. **Then** claim it, with the evidence.
 
 A subagent's success report is not evidence. A diff is. "Should pass" is not a status.
 
