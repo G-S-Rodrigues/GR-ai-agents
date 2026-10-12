@@ -6,12 +6,12 @@ description: Land an issue's approved PRs across every repo it touches — check
 
 # Squash Merge Skill
 
-**Out of the loop, deliberately.** `GR-manage` lands parts with `GR-pr`'s rebase-merge instead,
+**Out of the loop, deliberately.** `GR-manage` lands parts with `GR-pr`'s merge commits instead,
 because squash-merging erases the one-commit-per-step history a plan produced — the history that
 makes a later bisect or revert land on the step that caused it. This stays installable for landing a
 multi-repo issue by hand.
 
-`GR-rebase` verified this stack on the robot and pinned what it verified. Between then and now,
+The ready gate verified this stack on the robot and pinned what it verified. Between then and now,
 `main` moved and review changed the branches. This skill decides whether that pinned verdict is
 still **live** — and stops when it has gone **stale**, rather than landing something nobody drove.
 
@@ -42,7 +42,7 @@ reading absence as a pass.
 ## Phase 1 — Is the record still live?
 
 Read the most recent file in `<scratch>/<feature>/ready/`. Where none exists, the stack was never
-verified on the robot — say so and hand back to `/GR-rebase`.
+verified on the robot — say so and hand back to re-running the ready gate.
 
 Three checks per repo, each with one stale answer:
 
@@ -76,7 +76,7 @@ Two verdicts:
 
 ### Where it lands
 
-A stale repo ends the run. Report which repos are stale and why, and hand back to `/GR-rebase` —
+A stale repo ends the run. Report which repos are stale and why, and hand back to re-running the ready gate —
 the record is rebuilt by re-verifying on the robot, not by asserting the drift was harmless.
 
 **Done when** every repo has a live-or-stale verdict with the SHAs and any drift hits shown, and

@@ -53,7 +53,7 @@ Two axes, kept apart:
 Blast radius is never sharded: the drift lives *between* packages, so an agent holding one package
 cannot see it. Correctness can be — a bug is local.
 
-`GR-rebase` runs the suites; this skill finds what should change before they do.
+The ready gate runs the suites; this skill finds what should change before they do.
 
 ## Gate discipline
 
