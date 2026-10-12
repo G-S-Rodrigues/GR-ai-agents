@@ -1,7 +1,7 @@
 ---
 name: GR-pr
 disable-model-invocation: false
-description: Open the pull request for a finished branch and land it — draft a body saying what the repo adds and the technical specifics, create it once its text is approved, then wait for CI and the Copilot review, fix what the review got right, and rebase-merge on green.
+description: Open the pull request for a finished branch and land it — draft a body saying what the repo adds and the technical specifics, create it once its text is approved, then wait for CI and the Copilot review, fix what the review got right, and merge on green.
 ---
 
 # PR Skill
@@ -43,13 +43,12 @@ gh issue view <n> --repo <owner>/<repo> --json title,body,state
 
 ## Phase 1 — Open it
 
-### Confirm the done gate on this HEAD
+### Ready evidence
 
-The PR opens on evidence that the repo's **done gate** (named in its `docs/agents/testing.md`, or
-"the rule" in its `CLAUDE.md`) passed on the exact commit being published. Compare `git rev-parse
-HEAD` with the SHA that gate last passed on in this session or in the plan's progress file. A
-mismatch, or no record, means run the gate now and read its full output before going on. A red gate
-stops the run: report it.
+The PR opens as the ready gate starts: at once when `GR-manage` dispatched this, on text approval
+under the owner. This skill never runs the gate. The ready gate is the command the repo's `CLAUDE.md`
+names as the rule for done, and its result is a row in `<scratch>/<feature>/ready/` (format in
+`~/.claude/GR-references/where-documents-go.md`). Phase 2 step 5 reads that row.
 
 ### Read the change, not the commits
 
@@ -145,21 +144,35 @@ The gate is evidence, not a reply — every check green and the Copilot review t
    Read the code the comment points at before deciding; the comment is a claim, not evidence.
 3. **Fix the valid ones in a subagent** with `model: sonnet`, carrying the comment text, the file
    and line, and the rule that a behaviour fix goes test-first under `GR-implement-tdd` §2 (RED,
-   GREEN, one scoped commit). When another agent is working in the main tree, the fix works in a
+   GREEN, one scoped commit, `--fast` only; CI re-runs on the push). When another agent is working in the main tree, the fix works in a
    worktree of the PR branch. The subagent commits; this skill pushes, and re-reads the diff before
    it does — a subagent's report is not evidence.
 4. **Reply on each comment**: `fixed in <sha>` or `declined: <reason>`. The trail is what a later
    reader of the PR has instead of this session.
-5. **Merge when every check is green on the pushed head**, re-watching checks after any fix push
-   (Copilot does not re-review on push, so its review is not awaited again):
+5. **Merge when the ready evidence holds for HEAD**, re-watching checks after any fix push
+   (Copilot does not re-review on push, so its review is not awaited again). All of these hold:
+   - the latest `ready/` row is `pass`, and its branch SHA is HEAD or an ancestor of HEAD;
+   - every commit in `git rev-list <ready-sha>..HEAD` is one of two kinds: a non-merge commit whose
+     SHA appears in your own `fixed in <sha>` replies (`gh api repos/<owner>/<repo>/pulls/<pr>/comments`)
+     and that ran its test RED/GREEN plus `--fast`; or a merge commit made by step 6 that applied
+     with no conflict;
+   - CI is green on HEAD, and every comment is triaged.
+
+   Any other commit in the range is no evidence: report it and let the ready gate re-run. A failed
+   ready row means fix, then re-run the whole gate. Merge with the method the repo's `CLAUDE.md`
+   names as the merge method:
    ```sh
-   gh pr merge <pr> --repo <owner>/<repo> --rebase
+   gh pr merge <pr> --repo <owner>/<repo> <method flag>
    ```
-   Rebase-merge keeps the one-commit-per-step history a plan produced. A red check, a merge
-   conflict, or a valid comment still unfixed stops the run and gets reported instead.
-6. **Restack** any branch that was stacked on the merged one by running `GR-rebase` on it — it
-   owns the `--onto` form a rebase-merged predecessor needs, and the rule deciding which gate
-   re-runs. Do not rebase inline here; one copy of that knowledge, in one place.
+   Where `CLAUDE.md` names none, stop and report. A red check, a merge conflict, or a valid comment
+   still unfixed stops the run and gets reported instead.
+6. **Bring `main` in** when the PR conflicts, or when a hand-stacked branch's dependency has merged:
+   ```sh
+   git fetch origin && git merge origin/main
+   ```
+   then push. On a conflict, run `git merge --abort` so the checkout stays clean, report the
+   conflicting files and escalate; once resolved, the ready gate re-runs. A conflict-free merge runs
+   no gate, because CI's merge ref covers integration.
 
 ## Done
 
