@@ -26,6 +26,10 @@ unexpected, stop and report instead of choosing a recovery.
 
 ## Phase 0 — Scope
 
+**Resume landing PR #N.** When dispatched with that wording, the PR exists on purpose (a red ready
+gate was fixed and re-run): skip the checks below, including the PR-exists check, and Phase 1, and go
+to Phase 2's wait.
+
 The issue number is the branch's leading number (`4-estimators` → `#4`), and the issue lives in the
 repo whose `origin` the branch pushes to. Read it:
 
@@ -41,13 +45,12 @@ gh issue view <n> --repo <owner>/<repo> --json title,body,state
 - the repo's `CLAUDE.md` names a merge method — otherwise stop and report before opening.
 
 **Stop.** Report the branch, whether a PR already exists for it, and what you will do.
- **Resume landing PR #N.** When dispatched with that wording, the PR exists on purpose (a red ready
-gate was fixed and re-run): skip Phase 1 and go to Phase 2's wait.
 
 ## Phase 1 — Open it
 
 ### Ready evidence
- The PR opens as the ready gate starts: at once when `GR-manage` dispatched this, on text approval
+
+The PR opens as the ready gate starts: at once when `GR-manage` dispatched this, on text approval
 under the owner. This skill never runs the gate. The ready gate is the command the repo's
 `CLAUDE.md` names as the rule for done, and its result is a row in `<scratch>/<feature>/ready/`
 (format in `~/.claude/GR-references/where-documents-go.md`). Phase 2 step 5 reads that row.

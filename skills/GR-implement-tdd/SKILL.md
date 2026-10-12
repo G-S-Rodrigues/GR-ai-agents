@@ -75,7 +75,8 @@ mismatch, wrong topic) is not RED — fix the test first.
 - If that output shows a failure whose cause isn't immediately obvious, dispatch the
   `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
   inline — it returns the failing test, the error text, and a likely-cause category in a few lines.
- **Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
+
+**Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
 keeps a rollback point if a later step goes wrong. Follow `GR-commit`'s scoping rules exactly: `git
 branch --show-current` must not be `main` (stop and alert if it is — do not commit), stage only the
 files this step touched (never `git add -A`), run the commit-time regression run above and resolve

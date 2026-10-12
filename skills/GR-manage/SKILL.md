@@ -44,7 +44,8 @@ Per part, in order, one dispatch per stage (the ready gate and `GR-pr` go togeth
 
 The plan-review pass replaces the owner's approval of a plan. That is why it is a separate Opus
 agent rather than a self-check inside `GR-tdd`: a plan reviewed by its author is approved by nobody.
- **Ready gate ║ open and land** is two dispatches in the same turn, once Phase 3's guard passes.
+
+**Ready gate ║ open and land** is two dispatches in the same turn, once Phase 3's guard passes.
 `GR-test-runner` runs the gate the repo's `CLAUDE.md` names as the rule for done and reports the
 scope line, exit, branch SHA and `main` SHA; you write the `ready/` row and the ledger row from that
 report. `GR-pr` opens the PR at once and merges only on that row (its ready-evidence rule). A
@@ -53,7 +54,8 @@ missing row means no merge, so write it.
 **A part is planned once every part it depends on has merged**, so it is planned against the code
 that actually landed rather than the code that was proposed. An independent part may start while a
 PR waits.
- **One heavy lane:** one build or ready run at a time. A second in-flight part works in a worktree
+
+**One heavy lane:** one build or ready run at a time. A second in-flight part works in a worktree
 (the repo's gotchas name the worktree traps) and queues for the lane. Fix subagents queue for the
 lane too, since their `--fast` runs the repo's build: a Copilot fix, or a fix after a red ready
 gate, waits while a ready run holds it.
