@@ -24,7 +24,7 @@ Report in at most ~30 lines. I hold no source files and no logs, so what you lea
 Run GR-tdd on part <n> of <spec path>: "<part title>".
 
 The ledger is at <ledger path> — read it first; the rulings in it bind this plan.
-Parts <...> have already merged; plan against what is on main now, not against the spec's
+Parts <...> this one depends on have merged; plan against what is on main now, not against the spec's
 description of it.
 
 Write the plan to <scratch>/<feature>/plans/. Do not implement anything.
@@ -70,18 +70,16 @@ Ledger: <ledger path>. Write your digest to <scratch>/<feature>/review/ — GR-p
 <budget>
 ```
 
-## rebase and gate — `GR-rebase` (Sonnet)
+## ready gate — `GR-test-runner` (Sonnet)
 
 ```
-Run GR-rebase on <branch> in <repo>.
+Run the ready gate on <branch> in <repo>, in the background. The ready gate is the command the
+repo's CLAUDE.md names as the rule for done; run exactly that command, with no change to which
+tests it selects.
 
-<Before a PR: rebase onto origin/main and run the full gate.>
-<After a predecessor merged: restack with --onto; <predecessor>'s old tip was <sha>.>
-
-Decide the gate by the skill's mechanical rule, not by the size of the diff. The last recorded
-gate for this branch was <gate> at branch <sha> against main <sha>.
-
-Write the record to <scratch>/<feature>/ready/ and report which gate ran and why.
+Report: the scope line the gate printed (or "none"), the command, its exit, the full count of
+failures, the branch SHA and the main SHA. Pipe the log through tail/grep; I record the row in
+<scratch>/<feature>/ready/ myself.
 
 <budget>
 ```
@@ -95,7 +93,9 @@ and is already satisfied — do not stop for it.
 Issue: #<n>. Use `Refs #<n>`, or `Closes #<n>` if this is the last part.
 Review digest: <path>. Open topics to quote in the body: <paths, or none>.
 
-Report the PR number as soon as it is open, then continue to landing.
+The ready gate started beside you, and its record will be at <scratch>/<feature>/ready/. Open the PR
+now; merge per your ready-evidence rule. Report the PR number as soon as it is open, then continue
+to landing.
 
 <budget>
 ```
@@ -105,7 +105,11 @@ Report the PR number as soon as it is open, then continue to landing.
 ```
 Apply the review comments on PR #<n> in <repo> that <reviewer> raised, on branch <branch>.
 
-Ledger: <ledger path>. The comments to act on are: <list>.
+Ledger: <ledger path>. The comments to act on are: <list>
+(or: the ready gate failed at <sha>; the failing output is <...>. Fix it test-first; the
+coordinator re-runs the whole gate afterwards).
+Queue for the heavy lane: your `--fast` is a colcon build, so start it only when no ready run holds
+the lane.
 Where a comment is wrong or out of scope, say so and leave the code alone — a review comment is
 not automatically a ruling.
 

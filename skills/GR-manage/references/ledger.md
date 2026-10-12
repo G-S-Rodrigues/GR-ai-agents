@@ -27,10 +27,14 @@ Last written: <date> by <session or agent name>
 | 2 | <title> | <branch> | in progress | — | — |
 | 3 | <title> | <branch> | not started | — | — |
 
+Nightly: <run id>, main <sha>, <pass | fail>, <date> — the last scheduled run read, before each dispatch
+
 ## Current
 
+One block per in-flight part (an independent part may start while a PR waits).
+
 Part: <n>
-Stage: <plan | review-plan | implement | review-branch | rebase | pr>
+Stage: <plan | review-plan | implement | review-branch | ready+pr>
 Worker: <agent name / id, so its transcript can be found>
 Started: <timestamp>
 Branch head: <sha, or "no commits yet">
@@ -45,10 +49,10 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
 
 ## Gate results
 
-| Part | Branch SHA | main SHA | Gate | Result |
-|---|---|---|---|---|
-| 1 | <sha> | <sha> | `--full` | pass |
-| 2 | <sha> | <sha> | `--ci` | pass — restack, files disjoint |
+| Part | Branch SHA | main SHA | Gate | Scope | Result |
+|---|---|---|---|---|---|
+| 1 | <sha> | <sha> | `<the ready gate command>` | <scope line> | fail — <test ID> |
+| 1 | <sha> | <sha> | `<the ready gate command>` | <scope line> | pass — whole gate re-run after the fix |
 
 ## Open topics
 
@@ -66,11 +70,13 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
   sufficient and the rule above is broken. A measurement that caused an escalation goes in
   `Last reported` with its date, because "the estimator came in at 0.012" is useless if nobody can
   tell whether that was before or after someone tried to fix it.
+  At `ready+pr` the stage text names the record write: the coordinator writes the `ready/` row and
+  the gate-results row from the runner's report, before `GR-pr` can merge.
 - **Rulings** are the expensive thing to lose. A ruling given in a reply and not written here is
   gone at the next compaction, and the next worker will make the opposite call in good faith. Each
   one names the part it binds — a ruling about part 2 does not silently govern part 5.
 - **Gate results** carry both SHAs, because a gate result is only valid against the `main` it ran
-  on. Without them a restack cannot tell whether it still holds.
+  on. Without them `GR-pr` cannot tell whether a later commit is covered.
 - **Open topics** are the non-blocking escalations, linked so the PR body and the ledger do not
   drift into two versions of the same question.
 
