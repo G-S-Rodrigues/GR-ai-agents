@@ -64,9 +64,9 @@ review, ready + PR, land — and stops only for a decision that genuinely blocks
                     │              GR-tdd  ──▶  GR-review (plan)           │
                     │                 ▲                   │                │
                     │                 │                   ▼                │
-   GR-manage ◀─────▶│                               GR-implement-tdd       │
-   (Opus, thin,     │                                     │                │
-    ledger on disk) │                                     ▼                │
+   GR-manage ◀─────▶│                 │             GR-implement-tdd       │
+   (Opus, thin,     │                 │                   │                │
+    ledger on disk) │                 │                   ▼                │
                     │               GR-pr  ◀──────  GR-review (branch)     │
                     │        land: ready ║ CI ║ Copilot ──▶ merge commit   │
                     └──────────────────────────────────────────────────────┘

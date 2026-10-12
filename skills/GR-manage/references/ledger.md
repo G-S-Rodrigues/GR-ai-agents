@@ -27,7 +27,7 @@ Last written: <date> by <session or agent name>
 | 2 | <title> | <branch> | in progress | — | — |
 | 3 | <title> | <branch> | not started | — | — |
 
-Nightly: <run id>, main <sha>, <pass | fail>, <date> — the last scheduled run read, before each dispatch
+Nightly: <run id>, main <sha>, <pass | fail>, <date> — last scheduled run read before a dispatch
 
 ## Current
 
@@ -35,7 +35,7 @@ One block per in-flight part (an independent part may start while a PR waits).
 
 Part: <n>
 Stage: <plan | review-plan | implement | review-branch | ready+pr>
-Worker: <agent name / id, so its transcript can be found>
+Worker: <agent name / id, so its transcript can be found; two at `ready+pr`: the runner and GR-pr>
 Started: <timestamp>
 Branch head: <sha, or "no commits yet">
 Done so far: <the commits on this branch, one line each, and what is left>
@@ -52,7 +52,7 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
 | Part | Branch SHA | main SHA | Gate | Scope | Result |
 |---|---|---|---|---|---|
 | 1 | <sha> | <sha> | `<the ready gate command>` | <scope line> | fail — <test ID> |
-| 1 | <sha> | <sha> | `<the ready gate command>` | <scope line> | pass — whole gate re-run after the fix |
+| 1 | <sha> | <sha> | `<ready gate command>` | <scope line> | pass — whole gate re-run after fix |
 
 ## Open topics
 

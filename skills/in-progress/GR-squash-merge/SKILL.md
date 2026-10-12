@@ -44,6 +44,9 @@ reading absence as a pass.
 Read the latest row for each repo's branch in `<scratch>/<feature>/ready/`. Where none exists, the
 stack was never verified on the robot — say so and hand back to re-running the ready gate.
 
+This check is stricter than `GR-pr`'s ready-evidence rule: a later commit is stale here even where
+`GR-pr` would admit it (a `fixed in` fix, a conflict-free merge of `main`).
+
 Three checks per repo, each with one stale answer:
 
 1. **Did the branch move?** `git rev-parse HEAD` against the recorded branch SHA. A review fixup,
@@ -76,8 +79,9 @@ Two verdicts:
 
 ### Where it lands
 
-A stale repo ends the run. Report which repos are stale and why, and hand back to re-running the ready gate —
-the record is rebuilt by re-verifying on the robot, not by asserting the drift was harmless.
+A stale repo ends the run. Report which repos are stale and why, and hand back to re-running the
+ready gate — the record is rebuilt by re-verifying on the robot, not by asserting the drift was
+harmless.
 
 **Done when** every repo has a live-or-stale verdict with the SHAs and any drift hits shown, and
 every repo is live.

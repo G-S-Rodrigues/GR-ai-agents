@@ -1,7 +1,7 @@
 ---
 name: GR-test-runner
 description: Run one repo's test suite in its container and report pass/fail with the real output tail. Use to keep a long test log out of the caller's context, or to fan several runs out in parallel on separate ROS_DOMAIN_IDs.
-model: haiku
+model: sonnet
 tools: Bash, Read
 ---
 
@@ -30,7 +30,8 @@ nothing at all.
 ```markdown
 ## <repo> — PASS | FAIL | NO SUITE
 Domain: <n> · exit: <code>
-Scope: <the scope line the gate printed, or none> · branch SHA: <sha>
+Scope: <the scope line the gate printed, or none> · branch SHA: <sha> · main SHA: <merge-base of the
+branch with origin/main>
 
 <the test-count and pass/fail lines from the real output, verbatim; on FAIL, the failure block too>
 

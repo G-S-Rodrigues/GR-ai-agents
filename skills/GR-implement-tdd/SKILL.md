@@ -68,18 +68,17 @@ mismatch, wrong topic) is not RED — fix the test first.
   invocation `testing.md` documents (`pytest -k`, `--gtest_filter=`, `launch_test <file>`, Robot
   `--test <name>`) — not the suite. These runs are short; read their output directly.
 - The regression run happens once per step, at the commit, with the command `testing.md` names for
-  per-commit verification. Where `.git/hooks/pre-commit` exists, the hook is that run: skip
-  `GR-commit` step 4 for plan-step commits. Otherwise run `GR-commit` step 4's `pre-commit run
-  --files`, or the per-commit command `testing.md` names where the repo has no
-  `.pre-commit-config.yaml`. Keep its log out of context: pipe it through `tail` or `grep`.
+  per-commit verification. Where `git rev-parse --git-path hooks/pre-commit` names an existing file,
+  the hook is that run: skip `GR-commit` step 4 for plan-step commits. Otherwise run `GR-commit`
+  step 4's `pre-commit run --files`, or the per-commit command `testing.md` names where the repo has
+  no `.pre-commit-config.yaml`. Keep its log out of context: pipe it through `tail` or `grep`.
 - If that output shows a failure whose cause isn't immediately obvious, dispatch the
   `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
   inline — it returns the failing test, the error text, and a likely-cause category in a few lines.
-
-**Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
-keeps a rollback point if a later step goes wrong. Follow `GR-commit`'s scoping rules exactly:
-`git branch --show-current` must not be `main` (stop and alert if it is — do not commit), stage only
-the files this step touched (never `git add -A`), run pre-commit against the staged files and resolve
+ **Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
+keeps a rollback point if a later step goes wrong. Follow `GR-commit`'s scoping rules exactly: `git
+branch --show-current` must not be `main` (stop and alert if it is — do not commit), stage only the
+files this step touched (never `git add -A`), run the commit-time regression run above and resolve
 any failure the same way `GR-commit` does, and write a one-sentence message completing "This commit
 ...". Skip `GR-commit`'s approval gate for this commit only: plan execution already runs on a branch
 made for this task, so a per-step commit is part of carrying out the plan the user approved, not a
@@ -113,8 +112,8 @@ repo has a `.pre-commit-config.yaml`.
 2. **Run** it fresh and complete, once at the end of the implementation, and again after a failure:
    the whole gate, not only the failed test.
 3. **Read** the full output — exit code, failure count.
-4. **Record** the run as a row in `<scratch>/<feature>/ready/`, in the format `where-documents-go.md`
-   gives.
+4. **Record** the run as a row in `<scratch>/<feature>/ready/`, in the format
+   `where-documents-go.md` gives.
 5. **Then** claim it, with the evidence.
 
 A subagent's success report is not evidence. A diff is. "Should pass" is not a status.

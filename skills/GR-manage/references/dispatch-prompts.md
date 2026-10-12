@@ -24,8 +24,8 @@ Report in at most ~30 lines. I hold no source files and no logs, so what you lea
 Run GR-tdd on part <n> of <spec path>: "<part title>".
 
 The ledger is at <ledger path> — read it first; the rulings in it bind this plan.
-Parts <...> this one depends on have merged; plan against what is on main now, not against the spec's
-description of it.
+Parts <...> this one depends on have merged; plan against what is on main now, not against
+the spec's description of it.
 
 Write the plan to <scratch>/<feature>/plans/. Do not implement anything.
 
@@ -121,9 +121,9 @@ Apply the review comments on PR #<n> in <repo> that <reviewer> raised, on branch
 
 Ledger: <ledger path>. The comments to act on are: <list>
 (or: the ready gate failed at <sha>; the failing output is <...>. Fix it test-first; the
-coordinator re-runs the whole gate afterwards).
-Queue for the heavy lane: your `--fast` is a colcon build, so start it only when no ready run holds
-the lane.
+coordinator re-runs the whole gate afterwards, so these commits need no `fixed in` reply).
+Queue for the heavy lane: your `--fast` runs the repo's build, so start it only when no ready
+run holds the lane.
 Where a comment is wrong or out of scope, say so and leave the code alone — a review comment is
 not automatically a ruling.
 
