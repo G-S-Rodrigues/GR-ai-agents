@@ -40,24 +40,41 @@ Per part, in order, one dispatch each:
 | review the plan | `GR-review`, `target: plan` | Opus |
 | implement | `GR-plan-worker` | Sonnet |
 | review the branch | `GR-review`, `target: branch` | Opus |
-| rebase + gate | `GR-rebase` | Sonnet |
-| open and land | `GR-pr` | Sonnet |
+| ready gate ║ open and land | `GR-test-runner` ║ `GR-pr` | Sonnet |
 
 The plan-review pass replaces the owner's approval of a plan. That is why it is a separate Opus
 agent rather than a self-check inside `GR-tdd`: a plan reviewed by its author is approved by nobody.
 
-**The next part's plan is written only after the previous part merges**, so it is planned against
-the code that actually landed rather than the code that was proposed.
+**Ready gate ║ open and land** is two dispatches in the same turn, once Phase 3's guard passes.
+`GR-test-runner` runs the gate the repo's `CLAUDE.md` names as the rule for done and reports the
+scope line, exit, branch SHA and `main` SHA; you write the `ready/` row and the ledger row from that
+report. `GR-pr` opens the PR at once and merges only on that row (its ready-evidence rule). A missing
+row means no merge, so write it.
 
-## Phase 2 — the wait
+**A part is planned once every part it depends on has merged**, so it is planned against the code
+that actually landed rather than the code that was proposed. An independent part may start while a
+PR waits.
 
-`GR-pr` waits on CI (~6-10 min) and the Copilot review (~4.5 min). Both run off-host, so the local
-heavy lane — one colcon build, one tier-2+ graph, one gate at a time — is idle while they do.
+**One heavy lane:** one colcon build or ready run at a time. A second in-flight part works in a
+worktree (the repo's gotchas name the worktree traps) and queues for the lane. Fix subagents queue
+for the lane too, since their `--fast` is a colcon build: a Copilot fix, or a fix after a red ready
+gate, waits while a ready run holds it.
 
-Spend it on a nightly-style multi-seed tier 3/4 run on the same branch. A nightly failure then
-surfaces before the merge instead of at 03:00 against a `main` that already carries it.
+## Phase 2 — the nightly boundary
 
-**A red nightly run is a blocking escalation.**
+`GR-pr` waits on CI and the Copilot review, off-host, while the heavy lane works another part or
+idles. Before dispatching any part's next stage, read the last scheduled run and write the ledger's
+`Nightly` line:
+
+```sh
+gh run list --repo <owner>/<repo> --event schedule --limit 1 --json databaseId,conclusion,headSha,createdAt,url
+```
+
+**A red nightly is a blocking escalation.** Map the failing test IDs to implementations with the
+lookup the repo's `testing.md` documents; where it documents none, halt every part. Halt the
+in-flight parts whose branch `ready scope:` line names a failing implementation, and any in-flight
+part with no such line. Not-yet-started parts queue behind a fix part, which you queue at the head,
+and push-notify the owner.
 
 ## Phase 3 — the pre-PR guard
 
