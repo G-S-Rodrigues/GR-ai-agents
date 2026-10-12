@@ -89,7 +89,7 @@ Changing any of these means changing skills, so they're recorded here rather tha
 
 ## Inventory
 
-Installed skills: `GR-brainstorming`, `GR-tdd`, `GR-implement-tdd`, `GR-review`, `GR-rebase`,
+Installed skills: `GR-brainstorming`, `GR-tdd`, `GR-implement-tdd`, `GR-review`,
 `GR-pr`, `GR-commit`, `GR-domain-modeling`, `GR-manage`. Drafts: `GR-prospect` and `GR-squash-merge`
 (both out of the loop, each saying why at the top of its `SKILL.md`), `GR-writing`, `matt-handoff`,
 `matt-writing-great-skills`.

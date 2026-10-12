@@ -20,7 +20,7 @@ skills here teach it three things:
 - **Development inside the devcontainer.** The toolchain lives in a container and the host has none
   of it, so every build, lint, and test command goes through `docker exec`, with a wrapper that
   starts the container without dumping a whole image build into the conversation.
-- **A workflow with handoffs.** Grill, plan, review, implement, review, rebase, PR. Each stage
+- **A workflow with handoffs.** Grill, plan, review, implement, review, ready + PR, land. Each stage
   writes its artifact to disk, instead of one long session that silently does all of it — and a
   coordinator can drive the whole loop from those artifacts rather than from its own memory.
 
@@ -55,7 +55,7 @@ The statusline installs separately, since it edits `settings.json`: `./scripts/s
 
 You discuss goals in chat and run `/GR-brainstorming` once. It produces an issue and a spec split
 into numbered parts. From there `GR-manage` carries each part round the ring — plan, review, build,
-review, rebase, land — and stops only for a decision that genuinely blocks.
+review, ready + PR, land — and stops only for a decision that genuinely blocks.
 
 ```
    you: goals in chat ──▶ GR-brainstorming ──▶ issue + spec in numbered parts
@@ -64,11 +64,11 @@ review, rebase, land — and stops only for a decision that genuinely blocks.
                     │              GR-tdd  ──▶  GR-review (plan)           │
                     │                 ▲                   │                │
                     │                 │                   ▼                │
-   GR-manage ◀─────▶│           GR-rebase           GR-implement-tdd       │
-   (Opus, thin,     │          (restack, gate)            │                │
-    ledger on disk) │                 ▲                   ▼                │
+   GR-manage ◀─────▶│                               GR-implement-tdd       │
+   (Opus, thin,     │                                     │                │
+    ledger on disk) │                                     ▼                │
                     │               GR-pr  ◀──────  GR-review (branch)     │
-                    │        land: CI ║ Copilot ║ nightly ──▶ rebase-merge │
+                    │        land: ready ║ CI ║ Copilot ──▶ merge commit   │
                     └──────────────────────────────────────────────────────┘
 
    escalation ──▶ blocking?  halt + notify the owner
@@ -104,9 +104,8 @@ and `GR-commit`, which the agent can also reach on its own.
 | [`GR-implement-tdd`](skills/GR-implement-tdd/) | Executes one plan file step by step: RED with the real failure output pasted, GREEN, verify, commit that step. | A plan is approved and you want it built. Point it at the plan path. |
 | [`GR-commit`](skills/GR-commit/) | Stages only the files belonging to this change, runs pre-commit on that same scope in the devcontainer, and proposes a one-sentence message completing "This commit ..." for your approval. | Committing anything. It refuses to commit on `main`. |
 | [`GR-domain-modeling`](skills/GR-domain-modeling/) | Challenges a fuzzy or overloaded term against a concrete scenario and writes the resolution into `CONTEXT.md` that same turn. | A word is doing two jobs, such as "map" or "client". Other skills reach for it automatically. |
-| [`GR-pr`](skills/GR-pr/) | Drafts the PR body and opens it once its text is approved, then lands it: waits for CI and the Copilot review, fixes the valid comments test-first, replies on each, and rebase-merges on green. | The done gate passed on the branch and it is ready to publish. |
+| [`GR-pr`](skills/GR-pr/) | Drafts the PR body and opens it once its text is approved, then lands it: waits for CI and the Copilot review, fixes the valid comments test-first, replies on each, and merges by the repo's method once the ready record, CI and triage agree. | The branch is reviewed and ready to publish. |
 | [`GR-review`](skills/GR-review/) | Interrogates one artifact before it goes on: `target: plan` checks a plan is test-first and settles nothing the spec left open — the approval a plan gets under a coordinator — and `target: branch` runs blast radius across the repo's packages, then correctness. | A plan is written, or a branch is finished and its PR is not open yet. |
-| [`GR-rebase`](skills/GR-rebase/) | Brings a branch onto current `main` — with `--onto` when restacking on a rebase-merged predecessor — chooses `--full` or `--ci` by a mechanical rule, and records which ran at which branch and `main` SHA. | Review is clean, or a predecessor just merged underneath you. |
 | [`GR-manage`](skills/GR-manage/) | Drives a spec's parts from plan to merged PR: one subagent per stage, every ruling and SHA written to a ledger on disk before the next dispatch, and a mechanical pre-PR diff check that halts on a baseline, a tolerance or a removed assert. | You have a spec in numbered parts and want it built without a reply per stage. |
 
 ### Drafts (`skills/in-progress/`, install with `--with-drafts`)
@@ -114,7 +113,7 @@ and `GR-commit`, which the agent can also reach on its own.
 | Skill | What it does | Use it when |
 |---|---|---|
 | [`GR-prospect`](skills/in-progress/GR-prospect/) | Scopes a GitHub issue across repos before design. **Out of the loop:** it scopes across repos, which the issue and part list from `GR-brainstorming` now cover. | A cross-repo issue, by hand. |
-| [`GR-squash-merge`](skills/in-progress/GR-squash-merge/) | Checks the ready record is still live, then squash-merges each repo in contract order. **Out of the loop:** squash-merging erases the per-step history that rebase-merge exists to keep. | Landing a multi-repo issue by hand. |
+| [`GR-squash-merge`](skills/in-progress/GR-squash-merge/) | Checks the ready record is still live, then squash-merges each repo in contract order. **Out of the loop:** squash-merging erases the per-step history that merge commits keep. | Landing a multi-repo issue by hand. |
 | [`GR-writing`](skills/in-progress/GR-writing/) | Writes a new document, or rewrites an existing file or pasted text, following the shared prose directives: cut first, then reword, then check for the signatures that read as machine-written. | A README, PR body, ADR, or reply needs to read like a person wrote it. |
 | [`matt-writing-great-skills`](skills/in-progress/matt-writing-great-skills/) | Reference on skill design: invocation cost, the information hierarchy, completion criteria. | Writing or pruning a skill. Pairs with [`references/writing-skills.md`](references/writing-skills.md). |
 | [`matt-handoff`](skills/in-progress/matt-handoff/) | Compacts the current conversation into a handoff doc for a fresh session, referencing artifacts by path instead of duplicating them. | A session is getting long and the work needs to continue elsewhere. |
