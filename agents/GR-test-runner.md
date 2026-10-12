@@ -30,6 +30,7 @@ nothing at all.
 ```markdown
 ## <repo> — PASS | FAIL | NO SUITE
 Domain: <n> · exit: <code>
+Scope: <the scope line the gate printed, or none> · branch SHA: <sha>
 
 <the test-count and pass/fail lines from the real output, verbatim; on FAIL, the failure block too>
 

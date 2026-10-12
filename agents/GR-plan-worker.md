@@ -50,7 +50,7 @@ looking like progress, and there is no positive phrasing that closes them:
 | delete, rename, skip or `xfail` a test | escalate with the failure output; a failing test is a finding |
 | lower a threshold in an existing assert | escalate; state the value you measured and the value asserted |
 | change a pinned seed | escalate; a seed that only passes at one value is the finding |
-| change which tiers the gate script runs | escalate; run the gate the repo's `CLAUDE.md` names |
+| change which tests the ready gate runs | escalate; run the ready gate the repo's `CLAUDE.md` names |
 
 A green run produced by any of these is worse than a red one, because nobody goes looking.
 
@@ -74,7 +74,7 @@ At most ~30 lines. The coordinator holds no logs and no source, so anything you 
 Commits:
 - <sha> <one-line message>
 
-Gate: <the command run, and its result>
+Gate: <the per-step `--fast` results; and, invoked by the owner, the ready gate command and its result>
 
 Open:
 - <anything escalated, unresolved, or deviating — or "nothing">
