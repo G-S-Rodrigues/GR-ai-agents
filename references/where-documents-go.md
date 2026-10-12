@@ -44,7 +44,7 @@ stack-wide defaults. Say that you fell back to it, and offer to bootstrap the re
 ├── spec/<date>-<summary>.md
 ├── plans/<date>-<summary>-tdd.md             (+ <date>-<summary>-tdd-progress.md after a handoff)
 ├── review/<date>-<summary>.md
-├── ready/<date>-ready.md
+├── ready/<date>-ready.md          (one file per date; one row appended per run)
 ├── run/ledger.md
 └── open_topics/<date>-<slug>.md
 ```
@@ -58,7 +58,7 @@ exactly one of them:
 | `spec/` | the settled decisions that interrogation produced | `GR-brainstorming` |
 | `plans/` | the test-first implementation plan for a spec; beside a plan, its `-progress.md` when an implementing agent handed off at its context budget | `GR-tdd`; progress: `GR-implement-tdd` |
 | `review/` | one review pass over the finished branch: findings, which were applied with the output that proved it, which were declined and why | `GR-review` |
-| `ready/` | what the branch was verified at: the branch SHA, the `main` SHA it was rebased onto, and which gate ran | `GR-rebase` |
+| `ready/` | what the branch was verified at: the branch SHA, the `main` SHA, the ready gate that ran and the scope it printed | whoever ran the ready gate: `GR-implement-tdd` §5 under the owner, `GR-manage`'s ready stage under a coordinator |
 | `run/` | the ledger of one run: the part table, the current stage, every ruling given, every gate result | `GR-manage` |
 | `open_topics/` | a question raised mid-run that did not block it, quoted in the PR body so it reaches the owner at review time | `GR-manage` |
 
@@ -66,10 +66,23 @@ exactly one of them:
 of re-deriving a cross-repo change from the diffs. A review digest is not a grill digest: grilling
 interrogates an idea before it is built, reviewing interrogates code after it is.
 
-`ready/` is the one directory with a fixed filename rather than a `<summary>`, because
-`GR-squash-merge` has to find it without being told where it is: the most recent file there is the
-live record. Re-running `GR-rebase` writes a new dated file beside the old one, so the history of
-what was verified when stays intact.
+`ready/` is the one directory with a fixed filename rather than a `<summary>`, because `GR-pr` and
+`GR-squash-merge` have to find it without being told where it is: the most recent file there is the
+live record. Each run appends one row to that date's file, and a new date starts a new file, so the
+history of what was verified when stays intact. The ready gate is the command the repo's `CLAUDE.md`
+names as the rule for done. The format:
+
+```markdown
+# Ready record — <branch>
+**Date:** <YYYY-MM-DD>
+
+| Branch | Branch SHA | main SHA | Gate | Scope | Result |
+|---|---|---|---|---|---|
+| <branch> | <sha> | <sha> | `<the command>` | <the scope line the gate printed, or none> | pass |
+```
+
+A row is complete when both SHAs, the command and the result are filled in; a row without them
+cannot be re-checked.
 
 ## Resolving `<scratch>` and `<feature>`
 
