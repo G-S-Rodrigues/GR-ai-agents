@@ -76,8 +76,8 @@ Each command below is the repo's own, from `docs/agents/testing.md` and
 The shape is shown; the command is never carried over from another repo.
 
 ```sh
-# the suite / done gate
-docker exec <container> bash -lc 'cd <workdir> && <the repo's done gate>'
+# the suite / ready gate
+docker exec <container> bash -lc 'cd <workdir> && <the repo's ready gate>'
 ```
 
 ```sh

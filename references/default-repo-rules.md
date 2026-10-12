@@ -9,7 +9,7 @@ afterwards.
 - **Claude runs on the host; the toolchain does not.** Read `working-in-the-devcontainer.md` before
   running any command — it carries the `docker exec` form, how to find and start the container, and
   what a shared container means for concurrent runs. A bare `colcon build` is broken.
-- **The done gate is the repo's own.** Its `CLAUDE.md` names it, often as "the rule". Run that
+- **The ready gate is the repo's own.** Its `CLAUDE.md` names it, often as "the rule". Run that
   command, not the subset of tests you touched.
 - **C++ is Google style with `IndentWidth: 4` and `ColumnLimit: 80`**, naming enforced by clang-tidy
   `readability-identifier-naming`. clang-tidy needs a compilation database, so build before linting

@@ -106,7 +106,7 @@ State the resolved path in one line before writing.
   ```
   The repo's `CLAUDE.md` names `<container>` and `<workdir>`, and whether a `source` line is needed
   at all. `<command>` comes from the repo's `docs/agents/testing.md` (single test, per-step suite,
-  done gate), never from memory of another repo.
+  ready gate), never from memory of another repo.
   Include this line in the plan so the implementer can confirm where it is running:
   ```sh
   test -f /.dockerenv && echo "in container" || echo "NOT in container"
