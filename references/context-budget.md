@@ -2,13 +2,30 @@
 
 Every agent — a session working alone, a coordinator, and every subagent or peer session a
 coordinator dispatches — works to a **200k-token context ceiling**. Past it, answers get worse
-before auto-compaction ever triggers. Auto-compaction also drops the details long work depends on:
-which hypothesis was already ruled out, which command actually worked. A deliberate handoff keeps
-them.
+before compaction ever triggers. Compaction also drops the details long work depends on: which
+hypothesis was already ruled out, which command actually worked. A deliberate handoff keeps them.
 
 No setting enforces this. `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is a percentage of the model's window,
 and whether it reaches Agent-tool subagents is undocumented. The budget is a process, and this file
 is that process.
+
+## Compaction is Jev pruning, not a summary
+
+Compaction is the `fast-jev-compaction` plugin. TypeSafe's Jev scores every old tool call and
+result; a stale call is dropped with its result, a stale result is cut to its first 300 characters,
+and everything kept stays verbatim. User and assistant text is never removed. The first message and
+the last 2 are always kept. If Jev fails or frees too little, the built-in summary runs instead.
+
+- **It fires at 25% of the window — 250k on a 1M window**, past the 200k ceiling. It is a backstop
+  for a handoff that did not happen, never the budget. On a 200k window the same 25% is 50k.
+- **Text survives; tool output may not.** Write a finding, a ruling or the command that worked into
+  a message as you go. One left only in a tool result can be pruned.
+- **A pruned result is re-run, not recalled.** A truncated read or log means re-read it.
+- Whether it reaches Agent-tool subagents is undocumented, so a subagent's budget is still watched.
+
+Settings: `pluginConfigs` in `~/.claude/settings.json`, with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`
+and `TYPESAFE_API_KEY` in its `env`. Every compaction sends the conversation (not tool results) to
+`api.typesafe.ai`.
 
 ## The numbers
 
