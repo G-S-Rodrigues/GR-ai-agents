@@ -1,0 +1,3 @@
+[submodule "plugins/fast-jev-compaction"]
+	path = plugins/fast-jev-compaction
+	url = https://github.com/G-S-Rodrigues/fast-jev-compaction.git
