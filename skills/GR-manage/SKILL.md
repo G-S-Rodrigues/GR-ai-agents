@@ -29,8 +29,9 @@ Read the spec's part list. Resolve `<feature>` and read or create
 Start the watch before the first dispatch: a background `Monitor` running the coordinator command in
 `context-budget.md` **Who watches**, over this session's `subagents/` directory and its own transcript. A
 line about a subagent: tell it compaction is no longer effective. A line about your own transcript is the
-stop in **Coordinating a run**. A resumed session starts its own watch, since the last one ended with its
-session.
+stop in **Coordinating a run**. The successor after a stop is a fresh session, which starts its own watch
+since the last one ended with its session. A resumed session under the same id would have its own
+past trigger muted by `--skip-over`.
 
 **Resuming is this same phase.** If the ledger exists, continue from it and re-ask nothing — not
 the spec path, not which part is next, not a ruling already recorded. A fresh session taking over

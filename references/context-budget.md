@@ -44,7 +44,9 @@ agent hands off:
 | count | the 5th compaction | a possible loop, not progress |
 | stalled | >= 240k with no compaction since the context passed 220k | Jev is failing or skipping |
 
-The thresholds are absolute tokens, so a model's window does not change them.
+The thresholds are absolute tokens and assume a 1M window, which the spike measured. On a model with
+a 200,000-token window 20% is about 40k, so `ineffective` (150k) and `stalled` (240k) cannot fire
+there; only `count` can, and a failing Jev lets the context grow to the window's limit unwatched.
 
 ## Who watches
 
@@ -56,30 +58,34 @@ The thresholds are absolute tokens, so a model's window does not change them.
 | a long-lived session with no coordinator | itself, in its own background `Monitor` | `~/.claude/projects/<project>/<session-id>.jsonl` |
 
 An agent a coordinator dispatched runs no watch: it acts on the coordinator's message.
-`<project>` is the working directory with every `/` replaced by `-`. A session's own id is
-`$CLAUDE_CODE_SESSION_ID` (a subagent inherits its coordinator's), so its own transcript is
-`~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl`, and a coordinator's
-`<coordinator-session>` is that id. Where the variable is unset, the newest transcript stands in
-(`ls -t ~/.claude/projects/<project>/*.jsonl | head -1`); it can be another session's when several
-share a project. A peer's session id is in `~/.claude/sessions/*.json`, next to the `name` it shows
-in the sidebar.
+`<project>` is the directory under `~/.claude/projects/` that holds the transcript. Find it from the
+session id, not the working directory: `.` maps to `-` as well as `/`. `$CLAUDE_CODE_SESSION_ID` is
+the id of a top-level session, so `~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl` is
+that session's own transcript, and a coordinator's `<coordinator-session>` is that id. A subagent
+inherits its coordinator's value, so inside a subagent it names the coordinator, not the subagent;
+a subagent's transcript is the `agent-<id>.jsonl` its coordinator finds. Where the variable is
+unset, the newest transcript stands in (`ls -t ~/.claude/projects/*/*.jsonl | head -1`); it can be
+another session's. A peer's session id is in `~/.claude/sessions/*.json`, next to the `name` it
+shows in the sidebar.
 
 The watch is `scripts/context_watch.sh` from the GR-ai-agents checkout, found through the installed
 references link, run in a background `Monitor`. A coordinator watches its subagents, its peers and
 its own transcript:
 
 ```sh
+T=$(ls ~/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl)
 "$(dirname "$(readlink -f ~/.claude/GR-references)")"/scripts/context_watch.sh --skip-over \
-  ~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID/subagents \
-  ~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl \
-  ~/.claude/projects/<project>/<peer-session-id>.jsonl
+  "${T%.jsonl}/subagents" "$T"
 ```
+
+Add `~/.claude/projects/<project>/<peer-session-id>.jsonl` to the arguments for each peer; with no
+peers, the command is complete as it stands.
 
 A long-lived session with no coordinator watches its own transcript:
 
 ```sh
-"$(dirname "$(readlink -f ~/.claude/GR-references)")"/scripts/context_watch.sh \
-  ~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl
+T=$(ls ~/.claude/projects/*/"$CLAUDE_CODE_SESSION_ID".jsonl)
+"$(dirname "$(readlink -f ~/.claude/GR-references)")"/scripts/context_watch.sh "$T"
 ```
 
 It prints one line per trigger per transcript, once, so a quiet watch means compaction is working
@@ -92,7 +98,8 @@ context first reaches N, for an agent still told to hand off at a fixed size.
 On a line about another agent: message it that compaction is no longer effective for it, quoting
 the line. When it replies `handoff written`, dispatch a fresh agent pointed at the progress file,
 with the same rules and rulings the first one had. On a line about your own transcript: a
-coordinator stops (**Coordinating a run**); a session with no coordinator does the handoff below,
+coordinator stops (**Coordinating a run**), writing the ledger, or `<plan>-progress.md` when
+`GR-implement-tdd` is the coordinator; a session with no coordinator does the handoff below,
 push-notifies the owner and ends, and the owner opens a fresh session that resumes from the
 progress file.
 
@@ -119,9 +126,11 @@ context differently: it holds the shape of the run and nothing else. Four rules 
 - **Write to the ledger before the next dispatch** — every ruling, commit SHA, worker name and open
   topic, never only in the reply. A subagent's report is a tool result, and Jev may prune it at the
   next compaction; a ruling is the expensive kind to lose.
-- **On your own trigger, stop.** Write the ledger, push-notify the owner, and end the session. A
-  coordinator cannot start its own successor, so the ledger is what the next one resumes from —
-  which is the whole reason it is complete rather than tidy.
+- **On your own trigger, stop.** Write the ledger, push-notify the owner, and end the session.
+  Record in the ledger which subagents are still running, each with its id and step, since one cut
+  off mid-step leaves work the successor has to find. A coordinator cannot start its own successor,
+  so the ledger is what the next one resumes from — which is the whole reason it is complete rather
+  than tidy.
 
 ## Keeping the budget
 
