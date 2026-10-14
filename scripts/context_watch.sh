@@ -35,13 +35,19 @@ set -euo pipefail
 
 budget="" interval=90 once=0 skip_over=0 floor=150000 max_compactions=5
 stall=240000 paths=()
+# A non-numeric threshold would make the python in analyze fail, and its failure
+# is swallowed, so the watch would look like "everyone under budget".
+need_int() {
+  [[ $2 =~ ^[0-9]+$ ]] && return 0
+  echo "usage: $1 needs a whole number, got ${2:-nothing}" >&2; exit 2
+}
 while [ $# -gt 0 ]; do
   case "$1" in
     --budget) budget="$2"; shift 2 ;;
     --interval) interval="$2"; shift 2 ;;
-    --floor) floor="$2"; shift 2 ;;
-    --max-compactions) max_compactions="$2"; shift 2 ;;
-    --stall) stall="$2"; shift 2 ;;
+    --floor) need_int --floor "${2:-}"; floor="$2"; shift 2 ;;
+    --max-compactions) need_int --max-compactions "${2:-}"; max_compactions="$2"; shift 2 ;;
+    --stall) need_int --stall "${2:-}"; stall="$2"; shift 2 ;;
     --once) once=1; shift ;;
     --skip-over) skip_over=1; shift ;;
     -h|--help)

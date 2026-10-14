@@ -1,0 +1,3 @@
+--floor exit 2: usage: --floor needs a whole number, got 240k
+--stall exit 2: usage: --stall needs a whole number, got 240k
+--max-compactions exit 2: usage: --max-compactions needs a whole number, got 240k

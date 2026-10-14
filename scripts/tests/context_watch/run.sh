@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Fixture runner for scripts/context_watch.sh: WATCH-01..19. Each case runs the
+# Fixture runner for scripts/context_watch.sh: WATCH-01..20. Each case runs the
 # watch (--once unless it drives the live loop), and its stdout is diffed
 # against expected/<ID>.out. Exit 1 if any case fails.
 #
 # Provenance: every compact_boundary line in fixtures/ is a real record,
-# verbatim: agent-a52fb2ec0e09c39c0 (the 2026-10-14 route-(b) live test reader,
+# verbatim except WATCH-07, whose preTokens is edited to 236000: agent-a52fb2ec0e09c39c0 (the 2026-10-14 route-(b) live test reader,
 # sessionId c5fb1ffb) lines 46/102/165/231/310; session 2045aabb line 742; session
 # cb807bc9 line 842. Assistant lines are real lines 43 and 58 of the reader with
 # the content cut to one short text block and the usage edited to the scenario's
@@ -25,7 +25,14 @@ cleanup() {
 trap cleanup EXIT
 failed=0
 
-w() { timeout 10 bash "$watch" "$@" 2>&1; }
+# w ARGS: run the watch. A non-zero exit (a hang killed by timeout is 124) is
+# appended as "rc=N", so a case that expects empty output cannot pass on it.
+w() {
+  local out rc
+  out=$(timeout 10 bash "$watch" "$@" 2>&1); rc=$?
+  [ -z "$out" ] || printf '%s\n' "$out"
+  [ "$rc" -eq 0 ] || printf 'rc=%s\n' "$rc"
+}
 
 # check ID ACTUAL: compare with expected/ID.out and print PASS or FAIL.
 check() {
@@ -102,5 +109,13 @@ for flag in --floor --max-compactions --stall --budget; do
   fi
 done
 check WATCH-19 "$out19"
+
+# WATCH-20: a non-numeric threshold is a usage error, not a silent watch.
+out20=""
+for flag in --floor --stall --max-compactions; do
+  msg=$(timeout 10 bash "$watch" --once "$flag" 240k "$fx/WATCH-01.jsonl" 2>&1 >/dev/null); rc=$?
+  out20="$out20${out20:+$'\n'}$flag exit $rc: ${msg%%$'\n'*}"
+done
+check WATCH-20 "$out20"
 
 exit "$failed"
