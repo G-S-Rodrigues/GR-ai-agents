@@ -5,6 +5,10 @@
 #
 #   .\scripts\uninstall.ps1            remove links
 #   .\scripts\uninstall.ps1 -DryRun    show what would be removed
+#   $env:CLAUDE_BIN = '<path>'           use this claude CLI for the plugin step
+#
+# Also uninstalls the fast-jev-compaction plugin and its marketplace through the
+# claude CLI, which deletes the plugin's saved options. The plugins\ checkout stays.
 
 [CmdletBinding()]
 param(
@@ -73,6 +77,43 @@ foreach ($dir in $dirs) {
             }
             $script:removed++
         }
+    }
+}
+
+# --- fast-jev-compaction plugin -----------------------------------------------
+function Get-ClaudeCli {
+    if ($env:CLAUDE_BIN) {
+        if (Test-Path -LiteralPath $env:CLAUDE_BIN) { return $env:CLAUDE_BIN }
+        return $null
+    }
+    $cmd = Get-Command claude -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    return $null
+}
+
+$PluginId = 'fast-jev-compaction@gr-fast-jev-compaction'
+$Marketplace = 'gr-fast-jev-compaction'
+$cli = Get-ClaudeCli
+if (-not $cli) {
+    $b = if ($env:CLAUDE_BIN) { $env:CLAUDE_BIN } else { 'unset' }
+    Write-Host "claude CLI not found (CLAUDE_BIN=$b) -- plugin left installed; set CLAUDE_BIN=<path to claude>"
+} elseif ($DryRun) {
+    Write-Host "  would: $cli plugin uninstall $PluginId (if installed)" -ForegroundColor DarkGray
+    Write-Host "  would: $cli plugin marketplace remove $Marketplace (if present; drops the plugin's saved options)" -ForegroundColor DarkGray
+} else {
+    # Removing something absent exits nonzero, so check each list first.
+    $plugins = (& $cli plugin list --json) -join "`n"
+    if ($LASTEXITCODE -ne 0) { throw 'claude plugin list failed' }
+    if ($plugins.Contains("`"$PluginId`"")) {
+        & $cli plugin uninstall $PluginId
+        if ($LASTEXITCODE -ne 0) { throw 'claude plugin uninstall failed' }
+    }
+    $mkts = (& $cli plugin marketplace list --json) -join "`n"
+    if ($LASTEXITCODE -ne 0) { throw 'claude plugin marketplace list failed' }
+    if ($mkts.Contains("`"$Marketplace`"")) {
+        Write-Host "removing marketplace $Marketplace (this deletes the plugin's saved options)"
+        & $cli plugin marketplace remove $Marketplace
+        if ($LASTEXITCODE -ne 0) { throw 'claude plugin marketplace remove failed' }
     }
 }
 

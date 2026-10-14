@@ -8,6 +8,10 @@
 #   .\scripts\install.ps1 -DryRun         show what would change, touch nothing
 #   .\scripts\install.ps1 -WithDrafts     also install skills\in-progress\*
 #   .\scripts\install.ps1 -ClaudeOnly     skip the ~\.codex targets
+#   $env:CLAUDE_BIN = '<path>'            use this claude CLI for the plugin step
+#
+# Also installs the fast-jev-compaction fork (plugins\) through the claude CLI and
+# prints the settings.json lines to paste; it never writes settings.json itself.
 #
 # Existing real files/directories at a target path are moved into a timestamped
 # backup directory, never deleted. Existing links are replaced.
@@ -167,6 +171,58 @@ Write-Host ''
 Write-Host "references ->  $($RefDirs -join ', ')"
 foreach ($d in $RefDirs) { Install-Link -Src (Join-Path $Repo 'references') -Dst $d }
 
+# --- fast-jev-compaction plugin -----------------------------------------------
+function Get-ClaudeCli {
+    if ($env:CLAUDE_BIN) {
+        if (Test-Path -LiteralPath $env:CLAUDE_BIN) { return $env:CLAUDE_BIN }
+        return $null
+    }
+    $cmd = Get-Command claude -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    return $null
+}
+
+function Write-PluginSettings {
+    Write-Host ''
+    Write-Host 'Add to ~\.claude\settings.json -- this installer does not write it:'
+    Get-Content -Raw (Join-Path $Repo 'plugins\fast-jev-compaction.settings.json')
+}
+
+$PluginId = 'fast-jev-compaction@gr-fast-jev-compaction'
+$PluginDir = Join-Path $Repo 'plugins\fast-jev-compaction'
+Write-Host ''
+Write-Host "plugin ->  $PluginId"
+if ($DryRun) {
+    Write-Host "  would: git -C $Repo submodule update --init plugins/fast-jev-compaction" -ForegroundColor DarkGray
+} else {
+    git -C $Repo submodule update --init plugins/fast-jev-compaction
+    if ($LASTEXITCODE -ne 0) { throw 'git submodule update failed' }
+}
+$cli = Get-ClaudeCli
+if (-not $cli) {
+    $b = if ($env:CLAUDE_BIN) { $env:CLAUDE_BIN } else { 'unset' }
+    Write-Host "  ! claude CLI not found (CLAUDE_BIN=$b) -- set CLAUDE_BIN=<path to claude> to install the plugin" -ForegroundColor Yellow
+} elseif ($DryRun) {
+    # Even `plugin ... list` is a CLI call that may write caches; a dry run makes none.
+    Write-Host "  would: $cli plugin marketplace remove fast-jev-compaction (if present)" -ForegroundColor DarkGray
+    Write-Host "  would: $cli plugin marketplace add $PluginDir" -ForegroundColor DarkGray
+    Write-Host "  would: $cli plugin install $PluginId" -ForegroundColor DarkGray
+    Write-PluginSettings
+} else {
+    $mkts = (& $cli plugin marketplace list --json) -join "`n"
+    if ($LASTEXITCODE -ne 0) { throw 'claude plugin marketplace list failed' }
+    if ($mkts -match '"name":\s*"fast-jev-compaction"') {
+        Write-Host '  removing the tamaratran marketplace (this also drops its saved pluginConfigs)'
+        & $cli plugin marketplace remove fast-jev-compaction
+        if ($LASTEXITCODE -ne 0) { throw 'claude plugin marketplace remove failed' }
+    }
+    & $cli plugin marketplace add $PluginDir
+    if ($LASTEXITCODE -ne 0) { throw 'claude plugin marketplace add failed' }
+    & $cli plugin install $PluginId
+    if ($LASTEXITCODE -ne 0) { throw 'claude plugin install failed' }
+    Write-PluginSettings
+}
+
 # --- done ---------------------------------------------------------------------
 Write-Host ''
 if ($DryRun) {
@@ -185,5 +241,5 @@ if ($script:UsedHardLink) {
     Write-Host 'from a normal (non-sandboxed) terminal, or run once as Administrator.' -ForegroundColor Yellow
 }
 Write-Host ''
-Write-Host 'Hooks are NOT installed by this script -- they need settings.json entries.'
-Write-Host 'See hooks\README.md and add them yourself.'
+Write-Host 'The plugin is registered through the claude CLI; the settings.json lines above are yours to paste.'
+Write-Host 'Scripts under hooks\ are NOT installed by this script. See hooks\README.md.'

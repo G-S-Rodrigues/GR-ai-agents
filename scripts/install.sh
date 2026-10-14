@@ -7,7 +7,10 @@
 #   ./scripts/install.sh --dry-run       show what would change, touch nothing
 #   ./scripts/install.sh --with-drafts   also install skills/in-progress/*
 #   ./scripts/install.sh --claude-only   skip the ~/.codex targets
+#   CLAUDE_BIN=<path> ./scripts/install.sh   use this claude CLI for the plugin step
 #
+# Also installs the fast-jev-compaction fork (plugins/) through the claude CLI and
+# prints the settings.json lines to paste; it never writes settings.json itself.
 # Existing real files/directories at a target path are moved into a timestamped
 # backup directory, never deleted. Existing symlinks are replaced.
 
@@ -24,7 +27,7 @@ for arg in "$@"; do
     --dry-run)     DRY_RUN=1 ;;
     --with-drafts) WITH_DRAFTS=1 ;;
     --claude-only) CLAUDE_ONLY=1 ;;
-    -h|--help)     sed -n '2,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)     sed -n '2,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *)             echo "unknown option: $arg (try --help)" >&2; exit 2 ;;
   esac
 done
@@ -113,6 +116,50 @@ say ""
 say "references →  ${REF_DIRS[*]}"
 for d in "${REF_DIRS[@]}"; do link "$REPO/references" "$d"; done
 
+# --- fast-jev-compaction plugin -----------------------------------------------
+# Resolve the claude CLI: $CLAUDE_BIN, else `claude` on PATH. Never claude.exe: under
+# WSL that manages the Windows profile and cannot read a /mnt/c path as a Windows path.
+claude_cli() {
+  if [ -n "${CLAUDE_BIN:-}" ]; then
+    [ -x "$CLAUDE_BIN" ] && printf '%s\n' "$CLAUDE_BIN"
+  else
+    command -v claude || true
+  fi
+}
+
+print_plugin_settings() {
+  say ""
+  say "Add to ~/.claude/settings.json -- this installer does not write it:"
+  cat "$REPO/plugins/fast-jev-compaction.settings.json"
+}
+
+PLUGIN_ID="fast-jev-compaction@gr-fast-jev-compaction"
+PLUGIN_DIR="$REPO/plugins/fast-jev-compaction"
+say ""
+say "plugin →  $PLUGIN_ID"
+run git -C "$REPO" submodule update --init plugins/fast-jev-compaction
+CLI="$(claude_cli || true)"
+if [ -z "$CLI" ]; then
+  printf '  %s!%s claude CLI not found (CLAUDE_BIN=%s) -- set CLAUDE_BIN=<path to claude> to install the plugin\n' \
+    "$c_warn" "$c_off" "${CLAUDE_BIN:-unset}"
+elif [ "$DRY_RUN" = 1 ]; then
+  # Even `plugin ... list` is a CLI call that may write caches; a dry run makes none.
+  run "$CLI" plugin marketplace remove fast-jev-compaction "(if present)"
+  run "$CLI" plugin marketplace add "$PLUGIN_DIR"
+  run "$CLI" plugin install "$PLUGIN_ID"
+  print_plugin_settings
+else
+  # Capture the list first: inside an `if` pipeline a failing `list` is swallowed.
+  mkts="$("$CLI" plugin marketplace list --json)"
+  if printf '%s\n' "$mkts" | grep -q '"name": *"fast-jev-compaction"'; then
+    say "  removing the tamaratran marketplace (this also drops its saved pluginConfigs)"
+    "$CLI" plugin marketplace remove fast-jev-compaction
+  fi
+  "$CLI" plugin marketplace add "$PLUGIN_DIR"
+  "$CLI" plugin install "$PLUGIN_ID" </dev/null
+  print_plugin_settings
+fi
+
 # --- done ---------------------------------------------------------------------
 say ""
 if [ "$DRY_RUN" = 1 ]; then
@@ -122,5 +169,5 @@ else
   [ "$backed_up" = 1 ] && say "${c_warn}Replaced files were moved to: $BACKUP${c_off}"
 fi
 say ""
-say "Hooks are NOT installed by this script — they need settings.json entries."
-say "See hooks/README.md and add them yourself."
+say "The plugin is registered through the claude CLI; the settings.json lines above are yours to paste."
+say "Scripts under hooks/ are NOT installed by this script. See hooks/README.md."

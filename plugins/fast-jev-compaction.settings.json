@@ -1,0 +1,16 @@
+{
+  "pluginConfigs": {
+    "fast-jev-compaction@gr-fast-jev-compaction": {
+      "options": {
+        "compactAtPercent": 20,
+        "onFallback": "skip",
+        "preserveRecentMessages": 2
+      }
+    }
+  },
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "20",
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
+    "TYPESAFE_API_KEY": "<your TypeSafe API key>"
+  }
+}
