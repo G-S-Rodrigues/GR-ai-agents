@@ -39,7 +39,15 @@ Skills and references are **symlinked** into `~/.claude/` and `~/.codex/`, so `g
 them. Re-run `install.sh` only after adding, renaming, or removing a skill. Flags: `--dry-run`,
 `--with-drafts` (also installs `skills/in-progress/*`), `--claude-only`. Anything real already at a
 target path is moved to `~/.GR-ai-agents-backup/<timestamp>/`, never deleted.
-`./scripts/uninstall.sh` removes only symlinks pointing into this repo.
+`./scripts/uninstall.sh` removes only symlinks pointing into this repo, plus the plugin and its marketplace.
+
+The installer also inits the `plugins/fast-jev-compaction` submodule (our fork of the Jev
+compaction plugin), replaces the tamaratran marketplace with the fork's, and installs
+`fast-jev-compaction@gr-fast-jev-compaction` through the `claude` CLI. Where `claude` is not on
+`PATH` (WSL), pass `CLAUDE_BIN=<path to claude>`; without it the installer prints one skip line.
+Removing the old marketplace deletes its saved plugin options, so paste the lines it prints
+(from [`plugins/fast-jev-compaction.settings.json`](plugins/fast-jev-compaction.settings.json))
+into `~/.claude/settings.json` straight away. The plugin starts at the next session.
 
 On Windows, use `scripts\install.ps1` / `scripts\uninstall.ps1` (same flags, PascalCase:
 `-DryRun`, `-WithDrafts`, `-ClaudeOnly`). Directories link as symlinks (or a junction if the
@@ -152,8 +160,8 @@ told to read is never read, so add this line to your `~/.claude/CLAUDE.md`:
 Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log.
 
 [`hooks/`](hooks/) is the agreed home for hook scripts and is empty so far. A hook ships with the
-`settings.json` snippet that arms it, which you paste yourself, since the installer never touches
-that file. [`statusline/`](statusline/statusline.sh) is vendored from
+`settings.json` snippet that arms it, which you paste yourself: the installer prints such lines and
+writes none (the `claude` CLI records the plugin there). [`statusline/`](statusline/statusline.sh) is vendored from
 [daniel3303/ClaudeCodeStatusLine](https://github.com/daniel3303/ClaudeCodeStatusLine) with local
 changes, and renders `CWD 🌿 Branch → Model → Tokens → Effort → Session → 5h → 7d → +/-`.
 

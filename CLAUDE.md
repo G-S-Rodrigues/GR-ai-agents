@@ -13,6 +13,8 @@ skills/in-progress/<name>/      ← drafts; NOT installed unless --with-drafts
 agents/<name>.md                ← Claude subagents
 hooks/                          ← hook scripts + the settings.json snippets that arm them
 references/*.md                 ← shared material, installed to ~/.claude/GR-references/
+plugins/fast-jev-compaction/    ← submodule: our fork of the Jev compaction plugin, installed by the installers
+plugins/*.settings.json         ← the settings.json lines the installers print for it
 scripts/{install,uninstall}.sh
 ```
 
