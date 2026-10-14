@@ -1,81 +1,109 @@
-# Context budget: 200k tokens per agent
+# Context budget: hand off when compaction stops working
 
 Every agent — a session working alone, a coordinator, and every subagent or peer session a
-coordinator dispatches — works to a **200k-token context ceiling**. Past it, answers get worse
-before compaction ever triggers. Compaction also drops the details long work depends on: which
-hypothesis was already ruled out, which command actually worked. A deliberate handoff keeps them.
-
-No setting enforces this. `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is a percentage of the model's window,
-and whether it reaches Agent-tool subagents is undocumented. The budget is a process, and this file
-is that process.
+coordinator dispatches — keeps working through compactions. It hands off only when compaction has
+stopped working, and a watch outside the agent is what notices. A deliberate handoff keeps what
+long work depends on: which hypothesis was already ruled out, which command actually worked.
 
 ## Compaction is Jev pruning, not a summary
 
-Compaction is the `fast-jev-compaction` plugin. TypeSafe's Jev scores every old tool call and
-result; a stale call is dropped with its result, a stale result is cut to its first 300 characters,
-and everything kept stays verbatim. User and assistant text is never removed. The first message and
-the last 2 are always kept. If Jev fails or frees too little, the built-in summary runs instead.
+Compaction is the `fast-jev-compaction` plugin, our fork, installed by `scripts/install.sh`.
+TypeSafe's Jev scores every old tool call and result; a stale call is dropped with its result, a
+stale result is cut to its first 300 characters, and everything kept stays verbatim. User and
+assistant text is never removed. The first message and the last 2 are always kept.
 
-- **It fires at 25% of the window — 250k on a 1M window**, past the 200k ceiling. It is a backstop
-  for a handoff that did not happen, never the budget. On a 200k window the same 25% is 50k.
+- **It fires at 20% of the window**, in every session and every subagent. On a 1M window that is
+  about 196k for the CLI's own trigger and 200,000 tokens for the plugin's; real fires landed at
+  193–223k, because a step can add a large chunk before the check runs.
+- **The built-in summary never runs.** With `onFallback: "skip"`, a Jev failure or too small a
+  reduction compacts nothing, and the context keeps growing until the watch reports it stalled.
 - **Text survives; tool output may not.** Write a finding, a ruling or the command that worked into
   a message as you go. One left only in a tool result can be pruned.
 - **A pruned result is re-run, not recalled.** A truncated read or log means re-read it.
-- Whether it reaches Agent-tool subagents is undocumented, so a subagent's budget is still watched.
 
-Settings: `pluginConfigs` in `~/.claude/settings.json`, with `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`
-and `TYPESAFE_API_KEY` in its `env`. Every compaction sends the conversation (not tool results) to
-`api.typesafe.ai`.
+Settings live in `~/.claude/settings.json`, as the lines `scripts/install.sh` prints from
+`plugins/fast-jev-compaction.settings.json`: `pluginConfigs` with `compactAtPercent: 20`,
+`onFallback: "skip"` and `preserveRecentMessages: 2`, and in `env`
+`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=20`, `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` and `TYPESAFE_API_KEY`.
+The override is what makes subagents compact: an Agent-tool subagent compacts only through the CLI's
+native auto-compaction, whose default on a 1M window is about 967k, and the plugin prunes whatever
+that triggers. The override is process-wide, so the main session gets the same 20%. Every
+compaction sends the conversation (not tool results) to `api.typesafe.ai`.
 
-## The numbers
+## When compaction has stopped working
 
-- **Context size** is the last assistant message's `usage`:
-  `input_tokens + cache_read_input_tokens + cache_creation_input_tokens`.
-- **170k: ask for the handoff.** The agent still has to finish its step to a clean point. Two plan
-  runs asked at 200k overshot to 231k and 250k doing exactly that.
-- **200k: the ceiling.** An agent past it hands off at once, even mid-step (see the handoff below
-  for what to do with half-made work).
-- A coordinator may ask earlier, at a clean step boundary, when most of the work is still ahead. It
-  says why in the message.
+**Context size** is the last assistant message's `usage`:
+`input_tokens + cache_read_input_tokens + cache_creation_input_tokens`.
+
+Compaction itself needs no action. Any one of three triggers means it has stopped working, and the
+agent hands off:
+
+| Trigger | Condition | What it means |
+|---|---|---|
+| ineffective | the first context after a compaction is still >= 150k | the next compaction is close, with too little room left to finish a step |
+| count | the 5th compaction | a possible loop, not progress |
+| stalled | >= 240k with no compaction since the context passed 220k | Jev is failing or skipping |
+
+The thresholds are absolute tokens, so a model's window does not change them.
 
 ## Who watches
 
 | The agent is... | Watched by | Transcript |
 |---|---|---|
-| an Agent-tool subagent | the coordinator that dispatched it — a subagent cannot be compacted from outside | `~/.claude/projects/<project>/<coordinator-session>/subagents/agent-<id>.jsonl` |
+| an Agent-tool subagent | the coordinator that dispatched it | `~/.claude/projects/<project>/<coordinator-session>/subagents/agent-<id>.jsonl` |
 | a peer session (its own desktop or terminal session, reached with `SendMessage`) | the coordinator driving it | `~/.claude/projects/<project>/<session-id>.jsonl` |
-| a session with no coordinator | itself: the watch below with `--once --budget 0` on its own transcript, the newest one (`ls -t ~/.claude/projects/<project>/*.jsonl \| head -1`) | `~/.claude/projects/<project>/<session-id>.jsonl` |
+| a coordinator | itself, in the same watch as its subagents | `~/.claude/projects/<project>/<coordinator-session>.jsonl` |
+| a long-lived session with no coordinator | itself, in its own background `Monitor` | `~/.claude/projects/<project>/<session-id>.jsonl` |
 
-`<project>` is the working directory with every `/` replaced by `-`. A peer's session id is in
-`~/.claude/sessions/*.json`, next to the `name` it shows in the sidebar.
+An agent a coordinator dispatched runs no watch: it acts on the coordinator's message.
+`<project>` is the working directory with every `/` replaced by `-`. A session's own id is
+`$CLAUDE_CODE_SESSION_ID` (a subagent inherits its coordinator's), so its own transcript is
+`~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl`, and a coordinator's
+`<coordinator-session>` is that id. Where the variable is unset, the newest transcript stands in
+(`ls -t ~/.claude/projects/<project>/*.jsonl | head -1`); it can be another session's when several
+share a project. A peer's session id is in `~/.claude/sessions/*.json`, next to the `name` it shows
+in the sidebar.
 
-A coordinator watches with a background `Monitor` running `scripts/context_watch.sh` from the
-GR-ai-agents checkout, found through the installed references link. It prints one line per
-transcript when that transcript first crosses the threshold, so a quiet watch means everyone is
-under budget:
+The watch is `scripts/context_watch.sh` from the GR-ai-agents checkout, found through the installed
+references link, run in a background `Monitor`. A coordinator watches its subagents, its peers and
+its own transcript:
 
 ```sh
 "$(dirname "$(readlink -f ~/.claude/GR-references)")"/scripts/context_watch.sh --skip-over \
-  ~/.claude/projects/<project>/<coordinator-session>/subagents \
+  ~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID/subagents \
+  ~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl \
   ~/.claude/projects/<project>/<peer-session-id>.jsonl
 ```
 
-Directories are rescanned, so subagents dispatched later are picked up. `--skip-over` mutes agents
-that were already over at startup, i.e. ones already handled before a restart. `--budget 200000`
-watches the ceiling instead. `--once` checks one time and exits.
+A long-lived session with no coordinator watches its own transcript:
 
-On a line from the watch: message that agent to hand off. When it replies `handoff written`,
-dispatch a fresh agent pointed at the progress file, with the same rules and rulings the first one
-had. The coordinator watches its own context too, and hands off the same way.
+```sh
+"$(dirname "$(readlink -f ~/.claude/GR-references)")"/scripts/context_watch.sh \
+  ~/.claude/projects/<project>/$CLAUDE_CODE_SESSION_ID.jsonl
+```
+
+It prints one line per trigger per transcript, once, so a quiet watch means compaction is working
+everywhere. Directories are rescanned, so subagents dispatched later are picked up. `--skip-over`
+mutes problems already present at startup, i.e. ones already handled before a restart. `--once`
+checks one time and exits, for a one-off check rather than a watch. `--floor`, `--max-compactions`
+and `--stall` move the three thresholds. `--budget N` brings back the old rule, one line when the
+context first reaches N, for an agent still told to hand off at a fixed size.
+
+On a line about another agent: message it that compaction is no longer effective for it, quoting
+the line. When it replies `handoff written`, dispatch a fresh agent pointed at the progress file,
+with the same rules and rulings the first one had. On a line about your own transcript: a
+coordinator stops (**Coordinating a run**); a session with no coordinator does the handoff below,
+push-notifies the owner and ends, and the owner opens a fresh session that resumes from the
+progress file.
 
 ## Every dispatch carries the budget
 
 The clause tells the agent the reply the coordinator waits for, and the dispatch prompt is the
 only place a subagent is guaranteed to see it. Every dispatch prompt includes:
 
-> Context budget: ~200k tokens, per `~/.claude/GR-references/context-budget.md`. Pipe long output
-> through `tail`/`grep`. When you pass 170k, or when the coordinator asks, finish the step to a
-> clean point, write the progress file that reference describes, and reply exactly
+> Context budget per `~/.claude/GR-references/context-budget.md`. Pipe long output through
+> `tail`/`grep`. When the coordinator tells you compaction is no longer effective, finish the step
+> to a clean point, write the progress file that reference describes, and reply exactly
 > `handoff written`.
 
 ## Coordinating a run
@@ -84,16 +112,16 @@ A coordinator that drives a multi-part run lasts longer than any agent in it, so
 context differently: it holds the shape of the run and nothing else. Four rules do that work.
 
 - **Read no source file and no test log.** Every detail stays in the subagent that produced it. A
-  coordinator that opens a failing test to see for itself has become a worker and will run out of
-  context mid-run.
+  coordinator that opens a failing test to see for itself has become a worker, and it compacts
+  away the run to make room for the file.
 - **Cap every report at ~30 lines**, in the dispatch prompt. An uncapped subagent returns what it
   found interesting, which is the whole file.
 - **Write to the ledger before the next dispatch** — every ruling, commit SHA, worker name and open
-  topic, never only in the reply. Context that exists in one session's memory is gone at its next
-  compaction, silently, and a ruling is the expensive kind to lose.
-- **At 170k, stop.** Write the ledger, notify the owner, and end the session. A coordinator cannot
-  start its own successor, so the ledger is what the next one resumes from — which is the whole
-  reason it is complete rather than tidy.
+  topic, never only in the reply. A subagent's report is a tool result, and Jev may prune it at the
+  next compaction; a ruling is the expensive kind to lose.
+- **On your own trigger, stop.** Write the ledger, push-notify the owner, and end the session. A
+  coordinator cannot start its own successor, so the ledger is what the next one resumes from —
+  which is the whole reason it is complete rather than tidy.
 
 ## Keeping the budget
 

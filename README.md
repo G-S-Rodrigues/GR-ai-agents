@@ -149,12 +149,13 @@ Shared material installed to `~/.claude/GR-references/`:
 [`stack-glossary`](references/stack-glossary.md); [`writing-skills`](references/writing-skills.md),
 for authoring a skill; [`writing-for-people`](references/writing-for-people.md), for prose a teammate
 reads.
-[`context-budget`](references/context-budget.md) is the 200k-token rule every agent works to, and
-`scripts/context_watch.sh` is the watch a coordinator runs to enforce it. A reference no session is
-told to read is never read, so add this line to your `~/.claude/CLAUDE.md`:
+[`context-budget`](references/context-budget.md) is the rule every agent works to: keep working through
+compactions, and hand off only when compaction stops working. `scripts/context_watch.sh` is the watch that
+notices. A reference no session is told to read is never read, so add this line to your
+`~/.claude/CLAUDE.md`:
 
 ```markdown
-- Every session and every subagent works to a 200k-token context budget. Before dispatching a subagent or driving another session, and when your own context passes 170k, read `~/.claude/GR-references/context-budget.md`.
+- Every session and every subagent keeps working through compactions and hands off only when compaction stops working. Before dispatching a subagent, driving another session, or starting work long enough to compact, read `~/.claude/GR-references/context-budget.md`.
 ```
 
 Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log.

@@ -58,9 +58,9 @@ A green run produced by any of these is worse than a red one, because nobody goe
 
 Every dispatch you receive carries this clause, and it binds whether or not the prompt repeats it:
 
-> Context budget: ~200k tokens, per `~/.claude/GR-references/context-budget.md`. Pipe long output
-> through `tail`/`grep`. When you pass 170k, or when the coordinator asks, finish the step to a
-> clean point, write the progress file that reference describes, and reply exactly
+> Context budget per `~/.claude/GR-references/context-budget.md`. Pipe long output through
+> `tail`/`grep`. When the coordinator tells you compaction is no longer effective, finish the step
+> to a clean point, write the progress file that reference describes, and reply exactly
 > `handoff written`.
 
 ## Report

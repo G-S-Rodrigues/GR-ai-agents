@@ -37,9 +37,12 @@ Reuse decisions specify` and the step 2 commit instructions below, so each step 
 the agent that made it, not batched up by the coordinator afterward.
 
 If `<plan>-progress.md` exists beside the plan, a previous agent handed off: read it first and resume
-from it. Before dispatching an implementing agent, and whenever your context passes 170k, read
-`~/.claude/GR-references/context-budget.md`: the dispatcher watches each agent's budget and puts the
-budget clause in its prompt, and that file has the thresholds, the handoff file and how to resume.
+from it. Before dispatching an implementing agent, read `~/.claude/GR-references/context-budget.md`;
+every dispatch carries its clause. Run on your own, you watch as its **Who watches** says: in subagent
+mode you are a coordinator and watch your subagents and your own transcript; inline you watch your own
+transcript. On a trigger for your own transcript, finish the step to a clean point, write
+`<plan>-progress.md`, push-notify the owner and stop. Run under `GR-plan-worker`, you start no watch: the
+clause in your dispatch is your rule.
 
 ## 2. Per step: RED → GREEN → verify
 
