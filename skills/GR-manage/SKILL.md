@@ -77,11 +77,7 @@ idles. Before dispatching any part's next stage, read the last scheduled run and
 gh run list --repo <owner>/<repo> --event schedule --limit 1 --json databaseId,conclusion,headSha,createdAt,url
 ```
 
-**A red nightly is a blocking escalation.** Map the failing test IDs to implementations with the
-lookup the repo's `testing.md` documents; where it documents none, halt every part. Halt the
-in-flight parts whose branch `ready scope:` line names a failing implementation, and any in-flight
-part with no such line. Not-yet-started parts queue behind a fix part, which you queue at the head,
-and push-notify the owner. Message an in-flight `GR-pr` whose part is halted: "hold, do not merge".
+What a red nightly does to the queue is the repo's `CLAUDE.md`'s rule; follow it as written there.
 
 ## Phase 3 — the pre-PR guard
 
