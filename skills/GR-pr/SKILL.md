@@ -138,12 +138,14 @@ The gate is evidence, not a reply — every check green and the ready evidence h
 
 1. **Wait on events, not by polling.** Run one background `Monitor` per PR that prints when its
    checks finish (`gh pr checks <pr> --json name,bucket`). A PR that reports no checks has not
-   passed any; report that rather than reading absence as green. The monitor also polls the `ready/` record for a row for this branch at HEAD, or at an
-   ancestor step 5 covers. Wait up to 30 minutes for it, as for CI. A `fail` row means stop and
-   report "ready gate failed", with no merge; no row at the timeout is reported the same way.
+   passed any; report that rather than reading absence as green. The monitor also polls the
+   `ready/` record for a row for this branch at HEAD, or at an ancestor step 5 covers. Wait up to
+   30 minutes for it, as for CI. A `fail` row means stop and report "ready gate failed", with no
+   merge; no row at the timeout is reported the same way.
 2. **Triage every review comment** a person left — none is awaited (`gh api
-   repos/<owner>/<repo>/pulls/<pr>/comments`). Each is **valid** — the code is wrong or the claim it makes is — or **declined**, with the reason: it
-   contradicts an ADR or a gotcha, misreads the diff, or is style the repo's lint already rules on.
+   repos/<owner>/<repo>/pulls/<pr>/comments`). Each is **valid** — the code is wrong or the claim
+   it makes is — or **declined**, with the reason: it contradicts an ADR or a gotcha, misreads the
+   diff, or is style the repo's lint already rules on.
    Read the code the comment points at before deciding; the comment is a claim, not evidence.
 3. **Fix the valid ones in a subagent** with `model: sonnet`, carrying the comment text, the file
    and line, and the rule that a behaviour fix goes test-first under `GR-implement-tdd` §2 (RED,
