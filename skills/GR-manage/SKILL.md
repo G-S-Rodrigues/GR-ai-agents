@@ -64,12 +64,12 @@ PR waits.
 
 **One heavy lane:** one build or ready run at a time. A second in-flight part works in a worktree
 (the repo's gotchas name the worktree traps) and queues for the lane. Fix subagents queue for the
-lane too, since their `--fast` runs the repo's build: a Copilot fix, or a fix after a red ready
-gate, waits while a ready run holds it.
+lane too, since their `--fast` runs the repo's build: a review-comment fix, or a fix after a red
+ready gate, waits while a ready run holds it.
 
 ## Phase 2 — the nightly boundary
 
-`GR-pr` waits on CI and the Copilot review, off-host, while the heavy lane works another part or
+`GR-pr` waits on CI, off-host, while the heavy lane works another part or
 idles. Before dispatching any part's next stage, read the last scheduled run and write the ledger's
 `Nightly` line:
 

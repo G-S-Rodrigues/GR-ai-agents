@@ -76,7 +76,7 @@ review, ready + PR, land — and stops only for a decision that genuinely blocks
    (Opus, thin,     │                 │                   │                │
     ledger on disk) │                 │                   ▼                │
                     │               GR-pr  ◀──────  GR-review (branch)     │
-                    │        land: ready ║ CI ║ Copilot ──▶ merge commit   │
+                    │        land: ready ║ CI ──▶ merge commit             │
                     └──────────────────────────────────────────────────────┘
 
    escalation ──▶ blocking?  halt + notify the owner
@@ -112,7 +112,7 @@ and `GR-commit`, which the agent can also reach on its own.
 | [`GR-implement-tdd`](skills/GR-implement-tdd/) | Executes one plan file step by step: RED with the real failure output pasted, GREEN, verify, commit that step. | A plan is approved and you want it built. Point it at the plan path. |
 | [`GR-commit`](skills/GR-commit/) | Stages only the files belonging to this change, runs pre-commit on that same scope in the devcontainer, and proposes a one-sentence message completing "This commit ..." for your approval. | Committing anything. It refuses to commit on `main`. |
 | [`GR-domain-modeling`](skills/GR-domain-modeling/) | Challenges a fuzzy or overloaded term against a concrete scenario and writes the resolution into `CONTEXT.md` that same turn. | A word is doing two jobs, such as "map" or "client". Other skills reach for it automatically. |
-| [`GR-pr`](skills/GR-pr/) | Drafts the PR body and opens it once its text is approved, then lands it: waits for CI and the Copilot review, fixes the valid comments test-first, replies on each, and merges by the repo's method once the ready record, CI and triage agree. | The branch is reviewed and ready to publish. |
+| [`GR-pr`](skills/GR-pr/) | Drafts the PR body and opens it once its text is approved, then lands it: waits for CI, fixes any valid review comments test-first, replies on each, and merges by the repo's method once the ready record, CI and triage agree. | The branch is reviewed and ready to publish. |
 | [`GR-review`](skills/GR-review/) | Interrogates one artifact before it goes on: `target: plan` checks a plan is test-first and settles nothing the spec left open — the approval a plan gets under a coordinator — and `target: branch` runs blast radius across the repo's packages, then correctness. | A plan is written, or a branch is finished and its PR is not open yet. |
 | [`GR-manage`](skills/GR-manage/) | Drives a spec's parts from plan to merged PR: one subagent per stage, every ruling and SHA written to a ledger on disk before the next dispatch, and a mechanical pre-PR diff check that halts on a baseline, a tolerance or a removed assert. | You have a spec in numbered parts and want it built without a reply per stage. |
 
