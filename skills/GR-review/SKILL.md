@@ -30,6 +30,9 @@ Check, and report each as a finding or an explicit "checked, clean":
 - **Every step is test-first** — the test comes before the change that satisfies it.
 - **Every step names the failure it expects** before the fix. A step that says "add a test" without
   saying what the failure looks like cannot tell a real RED from an import error.
+- **Every committed test guards behaviour that can break again.** A test that only proves a one-time
+  change (an install, a config line, a rename) is a one-off check, run uncommitted
+  (`GR-tdd`'s `references/test-tiers.md`).
 - **Nothing is settled here that the spec left open.** A plan that quietly resolves an open question
   has made a decision nobody reviewed — that is the expensive class, because it reads as thoroughness.
 - **The plan's `Files:` set matches the part's**, in both directions. A file in the plan and not the

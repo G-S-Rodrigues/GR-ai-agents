@@ -9,6 +9,11 @@ leaves wiring untested is the failure this file prevents.
 | 2 — integration | **Wiring** — a live ROS graph inside one repo | the repo's integration tier |
 | 3+ — system | Behaviour only a full run exhibits | the repo's system / acceptance tier |
 | — manual | Anything the tiers cannot reach | a numbered human procedure, **with the reason** |
+| — one-off | A change that cannot break again once made: an install, a config line, a rename | an uncommitted check, run once, its output in the PR body |
+
+**A committed test guards behaviour that can break again.** Every test kept is run on every gate
+from then on, so one that only proves a change was made once ("the image has ffmpeg") is cost with
+no guard: make it a one-off, and still run it RED first, uncommitted.
 
 The repo's own `docs/agents/testing.md` names what each tier actually is and the command that runs
 it. The table above is the shape, not the commands.
@@ -71,6 +76,7 @@ prove something — it has both and how to rule them out.
 | pose topic → controller command | 2 | `test/<pkg>.robot` PKG-1200 |
 | a full lap completes within budget | 3 | `tests/system/test_<behaviour>.py` |
 | the RViz overlay reads correctly | manual | no harness renders it; a numbered procedure instead |
+| the dev image ships ffmpeg | one-off | `ffmpeg -version` in the new image, output in the PR body |
 
 Not tested: <behaviour> — <the reason, e.g. no such path exists yet; item deferred in the spec>.
 ```

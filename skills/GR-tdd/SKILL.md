@@ -69,8 +69,9 @@ Announce the choice with the reason and record it in the plan. In subagent mode:
 
 ## 6. Decide the test tiers
 
-Read `references/test-tiers.md`. State per behaviour which tier covers it, **and what stays
-unverified and why**. A plan that silently leaves wiring untested is the failure this section prevents.
+Read `references/test-tiers.md`. State per behaviour which tier covers it, or that it is checked
+once and not kept, **and what stays unverified and why**. A plan that silently leaves wiring
+untested is the failure this section prevents.
 
 The `.robot` tier is not optional filler — for live-graph wiring it is the only tier that
 reaches the code at all.
