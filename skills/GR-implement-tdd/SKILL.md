@@ -75,9 +75,8 @@ mismatch, wrong topic) is not RED — fix the test first.
   the hook is that run: skip `GR-commit` step 4 for plan-step commits. Otherwise run `GR-commit`
   step 4's `pre-commit run --files`, or the per-commit command `testing.md` names where the repo has
   no `.pre-commit-config.yaml`. Keep its log out of context: pipe it through `tail` or `grep`.
-- If that output shows a failure whose cause isn't immediately obvious, dispatch the
-  `test-failure-triage` subagent with the summary (or the log path) rather than reading the full log
-  inline — it returns the failing test, the error text, and a likely-cause category in a few lines.
+- If that output shows a failure whose cause isn't immediately obvious, `grep` the log for the
+  failing test's name and read only its traceback.
 
 **Commit.** Once verify passes, commit the step before moving to the next one — one commit per step
 keeps a rollback point if a later step goes wrong. Follow `GR-commit`'s scoping rules exactly: `git

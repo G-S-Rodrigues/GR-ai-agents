@@ -54,8 +54,8 @@ Count these:
 
 Announce the choice with the reason and record it in the plan. In subagent mode:
 
-- `GR-researcher` for facts, patterns, constraints, and unproven assumptions.
-- `GR-inventory` for mechanical lists — existing tests, harness, test-ID numbering, current coverage.
+- `GR-researcher` for facts, patterns, constraints, and unproven assumptions, and for mechanical
+  lists — existing tests, harness, test-ID numbering, current coverage.
 - Dispatch in parallel when the questions are independent. Never dispatch a subagent to *write* the
   plan; you write it from their findings.
 

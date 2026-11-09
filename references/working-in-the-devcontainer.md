@@ -97,8 +97,7 @@ result.
 The command is the repo's own — its `docs/agents/testing.md` and its `CLAUDE.md` name the single
 test, the per-step suite, and the ready gate. Never carry one repo's invocation to another.
 
-Pipe long output through `tail` or `grep` rather than reading it inline, and dispatch
-`test-failure-triage` on a failure whose cause is not immediately obvious.
+Pipe long output through `tail` or `grep` rather than reading it inline.
 
 **Two traps to rule out before trusting a green run**, because both report success on nothing:
 

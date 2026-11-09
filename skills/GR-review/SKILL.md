@@ -116,7 +116,7 @@ class has a finding or an explicit "checked, clean".
 
 ## Phase 3 — Correctness
 
-Dispatch `general-purpose` subagents over the diff — one per package where the diff is large enough
+Dispatch `GR-general` subagents over the diff — one per package where the diff is large enough
 to shard, otherwise one — each carrying the repo path, its `git diff main...HEAD` command, the
 phase 1 grounding files, and this brief:
 

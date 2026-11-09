@@ -83,8 +83,8 @@ review, ready + PR, land — and stops only for a decision that genuinely blocks
                   otherwise  open_topics/ + the PR body
 
   GR-domain-modeling: any stage, whenever a term turns out to be doing two jobs
-  GR-researcher / GR-inventory / GR-test-runner / GR-plan-worker / lint-fixer /
-    test-failure-triage: subagents the skills dispatch
+  GR-researcher / GR-test-runner / GR-plan-worker / GR-general / GR-lander:
+    subagents the skills dispatch
 ```
 
 `GR-manage` sits outside the ring because it produces no artifact of its own except the ledger. That
@@ -134,11 +134,10 @@ so its raw output never lands in the main conversation.
 | Agent | What it does |
 |---|---|
 | [`GR-researcher`](agents/GR-researcher.md) | Grounded codebase facts with `file:line` anchors, patterns to imitate, and unproven assumptions. Proposes no designs. |
-| [`GR-inventory`](agents/GR-inventory.md) | Mechanical test inventory: files, runner, test-ID numbering in use, current coverage. Lists only. |
-| [`lint-fixer`](agents/lint-fixer.md) | Fixes one failing report-only pre-commit hook (pyrefly, clang-tidy, shellcheck) in bounded attempts, re-verifying with that hook. Escalates instead of guessing. |
 | [`GR-test-runner`](agents/GR-test-runner.md) | Runs one repo's suite in its devcontainer on an assigned `ROS_DOMAIN_ID` and reports pass/fail with the real output tail. Lets a multi-repo run fan out in parallel. |
 | [`GR-plan-worker`](agents/GR-plan-worker.md) | Implements one part of a plan by running `GR-implement-tdd` on it, escalating rather than deciding on an ADR, a ROS contract, a baseline, a tolerance or a deviation. Also applies review-comment fixes. |
-| [`test-failure-triage`](agents/test-failure-triage.md) | Pulls the failing test name, error text, and likely cause out of a test log. |
+| [`GR-general`](agents/GR-general.md) | Runs one bounded task — a named skill (`GR-tdd`, `GR-review`) or one review shard — with only the tools those need. Dispatched instead of `general-purpose`, which carries every tool schema the session has. |
+| [`GR-lander`](agents/GR-lander.md) | Runs `GR-pr`: opens the PR, waits on CI and review through a background `Monitor`, and lands it. The only dispatched agent that carries `Monitor`, a large schema the others never use. |
 
 ## References, scripts, hooks
 

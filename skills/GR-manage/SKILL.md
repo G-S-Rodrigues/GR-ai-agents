@@ -49,6 +49,9 @@ Per part, in order, one dispatch per stage (the ready gate and `GR-pr` go togeth
 | review the branch | `GR-review`, `target: branch` | Opus |
 | ready gate ║ open and land | `GR-test-runner` ║ `GR-pr` | Sonnet |
 
+`GR-tdd` and `GR-review` are dispatched as `subagent_type: GR-general`, and `GR-pr` as
+`subagent_type: GR-lander`, each with the model shown.
+
 The plan-review pass replaces the owner's approval of a plan. That is why it is a separate Opus
 agent rather than a self-check inside `GR-tdd`: a plan reviewed by its author is approved by nobody.
 

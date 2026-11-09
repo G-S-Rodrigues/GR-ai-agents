@@ -96,8 +96,7 @@ Installed skills: `GR-brainstorming`, `GR-tdd`, `GR-implement-tdd`, `GR-review`,
 (both out of the loop, each saying why at the top of its `SKILL.md`), `GR-writing`, `matt-handoff`,
 `matt-writing-great-skills`.
 
-Agents: `GR-researcher`, `GR-inventory`, `GR-test-runner`, `GR-plan-worker`, `lint-fixer`,
-`test-failure-triage`.
+Agents: `GR-researcher`, `GR-test-runner`, `GR-plan-worker`, `GR-general`, `GR-lander`.
 
 ## Don't
 

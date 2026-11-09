@@ -135,8 +135,8 @@ context differently: it holds the shape of the run and nothing else. Four rules 
 ## Keeping the budget
 
 Every command whose output is not needed in full goes through `tail`, `grep`, or `-q`. A full log
-read inline costs more than the step it came from. That is what `tail`, `grep` and the
-`test-failure-triage` subagent are for. Fan-out reads go to `Explore` or `GR-researcher`, which
+read inline costs more than the step it came from. That is what `tail` and `grep` are
+for. Fan-out reads go to `Explore` or `GR-researcher`, which
 return conclusions rather than file dumps.
 
 ## The handoff
