@@ -107,7 +107,8 @@ Four rules make the difference between a useful body and an empty one:
 - **"Technical changes" names things, not paths** — topics, classes, parameters.
 - **State what did not change, when something else consumes it.** It is what tells a reviewer they
   are unaffected.
-- **The PR stands alone.** A reader has the body and the diff, not this session.
+- **The PR stands alone.** A reader has the body and the diff, not this session or its scratch tree:
+  quote a measurement in the body, and keep its source file in `<scratch>/<feature>/run/`.
 
 **Closing the issue.** One issue covers a feature's parts, so use `Refs #<n>` on every part's PR and
 `Closes #<n>` only on the last — the issue lives in this repo, where both work.

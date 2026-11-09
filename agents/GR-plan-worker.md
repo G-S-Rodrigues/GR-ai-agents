@@ -82,3 +82,6 @@ Open:
 
 Put the verification output that proves your claim in the report, not a summary of it. "Tests pass"
 is not a result; the command and its exit are.
+
+Copy a file into `<scratch>/<feature>/run/` before the report cites it, as
+`~/.claude/GR-references/where-documents-go.md`'s **Cited files live in `run/`** says.

@@ -85,3 +85,6 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
 Update it **before** the next dispatch, never after. The moment it is stale, the run's recorded
 state and its real state disagree, and nothing detects that — the ledger looks just as confident
 either way.
+
+Copy a file into `run/` before the ledger cites it, as
+`~/.claude/GR-references/where-documents-go.md`'s **Cited files live in `run/`** says.
