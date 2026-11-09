@@ -46,6 +46,8 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
 
 - **<date>, part <n>** — <the question that was raised>
   **Ruling:** <what was decided> — <why, in one line>
+- **<date time>, part <n>** — <the question that was raised>
+  **Provisional call** (no reply in 5 min): <the recommendation taken> — <why> — report call #<k>
 
 ## Gate results
 
@@ -61,8 +63,8 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
 
 ## What each part earns its place for
 
-- **The part table** is the run. `State` is one of `not started`, `in progress`, `blocked`,
-  `merged`. `blocked` always has a ruling below it saying what on.
+- **The part table** is the run. `State` is one of `not started`, `in progress`, `parked`,
+  `merged`. `parked` always has a call below it saying what on.
 - **Current** is what a resuming session needs to know it is mid-stage rather than between stages.
   The worker name matters: a handoff or a context-budget line is traced through it. **`Branch head`,
   `Done so far` and `Last reported` are what stop the next session having to go and read the branch
@@ -72,7 +74,8 @@ prompted an escalation, and whether it predates or postdates a fix attempt>
   tell whether that was before or after someone tried to fix it.
   At `ready+pr` the stage text names the record write: the coordinator writes the `ready/` row and
   the gate-results row from the runner's report, before `GR-pr` can merge.
-- **Rulings** are the expensive thing to lose. A ruling given in a reply and not written here is
+- **Rulings** are the expensive thing to lose. A provisional call is marked as one until the owner
+  confirms or overturns it, so the next session knows it may still change. A ruling given in a reply and not written here is
   gone at the next compaction, and the next worker will make the opposite call in good faith. Each
   one names the part it binds — a ruling about part 2 does not silently govern part 5.
 - **Gate results** carry both SHAs, because a gate result is only valid against the `main` it ran
@@ -88,3 +91,39 @@ either way.
 
 Copy a file into `run/` before the ledger cites it, as
 `~/.claude/GR-references/where-documents-go.md`'s **Cited files live in `run/`** says.
+
+# The report
+
+One file per run, beside the ledger: `<scratch>/<feature>/run/report.md`. The ledger is for the next
+session; the report is for the owner coming back. Plain words throughout: a part by what it does, a
+test by what it checks, never a bare ledger code.
+
+```markdown
+# Report: <feature>
+
+Last written: <date time>
+
+## What was done
+
+| When | Part | What it does now | State | PR / merge SHA |
+|---|---|---|---|---|
+| <date time> | <n> <title> | <one or two plain sentences: the capability, with its number> | merged | #<n> <sha> |
+| <date time> | <n> <title> | <what is built so far> | parked — waits on call <k> | — |
+| <date time> | — | moved on to <next feature>: its report is <path> | — | — |
+
+## Calls taken without you
+
+| # | When | Question | Taken | Why | To undo |
+|---|---|---|---|---|---|
+| <k> | <date time> | <the question, standalone> | <the recommendation> | <one line> | <what overturning costs: a revert of <sha>, a re-plan of part <n>> |
+
+## Waiting on you
+
+| # | Since | Question | Blocks | Recommendation |
+|---|---|---|---|---|
+| <k> | <date time> | <the question, standalone> | part <n> | <option and why> |
+```
+
+**To undo** is what lets the owner judge a call quickly: a call cheap to reverse can wait, one that
+later parts build on cannot. A row leaves **Waiting on you** when the owner answers; a provisional
+call stays in **Calls taken without you** with the owner's verdict added once they give it.

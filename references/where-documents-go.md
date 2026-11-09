@@ -45,7 +45,7 @@ stack-wide defaults. Say that you fell back to it, and offer to bootstrap the re
 ├── plans/<date>-<summary>-tdd.md             (+ <date>-<summary>-tdd-progress.md after a handoff)
 ├── review/<date>-<summary>.md
 ├── ready/<date>-ready.md          (one file per date; one row appended per run)
-├── run/ledger.md                  (+ run/<date>-<summary>.<ext> for each cited file, handoff-<date>-<summary>.md)
+├── run/ledger.md, run/report.md   (+ run/<date>-<summary>.<ext> for each cited file, handoff-<date>-<summary>.md)
 └── open_topics/<date>-<slug>.md
 ```
 
@@ -59,7 +59,7 @@ exactly one of them:
 | `plans/` | the test-first implementation plan for a spec; beside a plan, its `-progress.md` when an implementing agent handed off at its context budget | `GR-tdd`; progress: `GR-implement-tdd` |
 | `review/` | one review pass over the finished branch: findings, which were applied with the output that proved it, which were declined and why | `GR-review` |
 | `ready/` | what the branch was verified at: the branch SHA, the `main` SHA, the ready gate that ran and the scope it printed | whoever ran the ready gate: `GR-implement-tdd` §5 under the owner, `GR-manage`'s ready stage under a coordinator |
-| `run/` | the ledger of one run: the part table, the current stage, every ruling given, every gate result; beside it, every file a record cites and every handoff | ledger: `GR-manage`; cited files: whoever cites them; handoffs: `matt-handoff` |
+| `run/` | the ledger of one run: the part table, the current stage, every ruling given, every gate result; the owner's report of what was done and decided; beside them, every file a record cites and every handoff | ledger and report: `GR-manage`; cited files: whoever cites them; handoffs: `matt-handoff` |
 | `open_topics/` | a question raised mid-run that did not block it, quoted in the PR body so it reaches the owner at review time | `GR-manage` |
 
 `review/` sits at the far end, after the implementation is committed, and `GR-pr` reads it instead

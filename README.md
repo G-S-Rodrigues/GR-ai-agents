@@ -63,7 +63,8 @@ The statusline installs separately, since it edits `settings.json`: `./scripts/s
 
 You discuss goals in chat and run `/GR-brainstorming` once. It produces an issue and a spec split
 into numbered parts. From there `GR-manage` carries each part round the ring — plan, review, build,
-review, ready + PR, land — and stops only for a decision that genuinely blocks.
+review, ready + PR, land — and never waits on you: a question it asks times out to its
+recommendation after five minutes, noted in `run/report.md` for you to confirm or overturn.
 
 ```
    you: goals in chat ──▶ GR-brainstorming ──▶ issue + spec in numbered parts
@@ -79,8 +80,9 @@ review, ready + PR, land — and stops only for a decision that genuinely blocks
                     │        land: ready ║ CI ──▶ merge commit             │
                     └──────────────────────────────────────────────────────┘
 
-   escalation ──▶ blocking?  halt + notify the owner
-                  otherwise  open_topics/ + the PR body
+   escalation ──▶ owner's call?  ask + notify; no reply in 5 min ──▶ take the
+                                 recommendation, noted in run/report.md
+                  otherwise      open_topics/ + the PR body
 
   GR-domain-modeling: any stage, whenever a term turns out to be doing two jobs
   GR-researcher / GR-test-runner / GR-plan-worker / GR-general / GR-lander:
@@ -114,7 +116,7 @@ and `GR-commit`, which the agent can also reach on its own.
 | [`GR-domain-modeling`](skills/GR-domain-modeling/) | Challenges a fuzzy or overloaded term against a concrete scenario and writes the resolution into `CONTEXT.md` that same turn. | A word is doing two jobs, such as "map" or "client". Other skills reach for it automatically. |
 | [`GR-pr`](skills/GR-pr/) | Drafts the PR body and opens it once its text is approved, then lands it: waits for CI, fixes any valid review comments test-first, replies on each, and merges by the repo's method once the ready record, CI and triage agree. | The branch is reviewed and ready to publish. |
 | [`GR-review`](skills/GR-review/) | Interrogates one artifact before it goes on: `target: plan` checks a plan is test-first and settles nothing the spec left open — the approval a plan gets under a coordinator — and `target: branch` runs blast radius across the repo's packages, then correctness. | A plan is written, or a branch is finished and its PR is not open yet. |
-| [`GR-manage`](skills/GR-manage/) | Drives a spec's parts from plan to merged PR: one subagent per stage, every ruling and SHA written to a ledger on disk before the next dispatch, and a mechanical pre-PR diff check that halts on a baseline, a tolerance or a removed assert. | You have a spec in numbered parts and want it built without a reply per stage. |
+| [`GR-manage`](skills/GR-manage/) | Drives a spec's parts from plan to merged PR: one subagent per stage, every ruling and SHA written to a ledger on disk before the next dispatch, and owner calls that time out to their recommendation after five minutes, a catch-up report, and a mechanical pre-PR diff check that parks a part on a baseline, a tolerance or a removed assert. | You have a spec in numbered parts and want it built without a reply per stage. |
 
 ### Drafts (`skills/in-progress/`, install with `--with-drafts`)
 
