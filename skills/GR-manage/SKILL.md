@@ -167,11 +167,12 @@ lane spans both.
 
 ## The report
 
-`<scratch>/<feature>/run/report.md` is how the owner catches up: tables of what was implemented,
-the calls taken without them, and what waits on them, in plain words (format in
-[`references/ledger.md`](references/ledger.md)). Update it whenever a part changes state or a call
-settles, and name it in every push notification. It is complete when the owner, reading it alone,
-could tell what changed, what was decided for them, and what to answer.
+`<scratch>/<feature>/run/report.md` is how the owner catches up without interrupting the run: what
+is in flight now, what waits on them, what was implemented and the calls taken without them, in
+plain words (format in [`references/ledger.md`](references/ledger.md)). Rewrite its **Now** at every
+dispatch and every return; update the rest whenever a part changes state or a call settles, and name
+it in every push notification. It is complete when the owner, reading it alone in a minute, could
+tell what is running, what changed, what was decided for them, and what to answer.
 
 ## Never end a turn idle
 

@@ -101,7 +101,19 @@ test by what it checks, never a bare ledger code.
 ```markdown
 # Report: <feature>
 
-Last written: <date time>
+Last written: <date time> · main <sha>
+
+## Now
+
+- <part> — <stage>, <agent> since <time> (<branch> @ <sha>)
+- heavy lane: <part and stage holding it, or free>
+- next: <the dispatch that follows>
+
+## Waiting on you
+
+| # | Since | Question | Blocks | Recommendation |
+|---|---|---|---|---|
+| <k> | <date time> | <the question, standalone> | part <n> | <option and why> |
 
 ## What was done
 
@@ -116,13 +128,10 @@ Last written: <date time>
 | # | When | Question | Taken | Why | To undo |
 |---|---|---|---|---|---|
 | <k> | <date time> | <the question, standalone> | <the recommendation> | <one line> | <what overturning costs: a revert of <sha>, a re-plan of part <n>> |
-
-## Waiting on you
-
-| # | Since | Question | Blocks | Recommendation |
-|---|---|---|---|---|
-| <k> | <date time> | <the question, standalone> | part <n> | <option and why> |
 ```
+
+A **What it does now** cell is rewritten, never appended to: one or two sentences of the part's
+present state, its history left to the ledger.
 
 **To undo** is what lets the owner judge a call quickly: a call cheap to reverse can wait, one that
 later parts build on cannot. A row leaves **Waiting on you** when the owner answers; a provisional
