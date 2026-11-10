@@ -135,11 +135,19 @@ Go to Phase 2.
 ## Phase 2 — Land
 
 The owner's standing authorization: once a PR's text is approved, **land it without asking again**.
-The gate is evidence, not a reply — every check green and the ready evidence holding for HEAD.
+The gate is evidence, not a reply — every blocking check green and the ready evidence holding for
+HEAD. A check whose name contains `(non-blocking)` is never waited on and never stops a merge;
+every other check is blocking.
 
 1. **Wait on events, not by polling.** Run one background `Monitor` per PR that prints when its
-   checks finish (`gh pr checks <pr> --json name,bucket`). A PR that reports no checks has not
-   passed any; report that rather than reading absence as green. The monitor also polls the
+   blocking checks finish. Plain `gh pr checks` prints name, status and duration as tab-separated
+   columns (gh 2.45 has no `--json` there); status `pending` is unfinished, `pass` and `skipping`
+   are green, anything else is red:
+   ```sh
+   gh pr checks <pr> --repo <owner>/<repo> | grep -vF '(non-blocking)' | cut -f1,2
+   ```
+   A PR that reports no blocking checks has not passed any; report that rather than reading absence
+   as green. The monitor also polls the
    `ready/` record for a row for this branch at HEAD, or at an ancestor step 5 covers. Wait up to
    30 minutes for it, as for CI. A `fail` row means stop and report "ready gate failed", with no
    merge; no row at the timeout is reported the same way.
@@ -162,7 +170,7 @@ The gate is evidence, not a reply — every check green and the ready evidence h
      non-merge commit whose SHA appears in your own `fixed in <sha>` replies (`gh api
      repos/<owner>/<repo>/pulls/<pr>/comments`) and that ran its test RED/GREEN plus `--fast`; or a
      merge commit made by step 6 that applied with no conflict;
-   - CI is green on HEAD, and every comment is triaged.
+   - every blocking check is green on HEAD, and every comment is triaged.
 
    Any other commit in the range is no evidence: report it and let the ready gate re-run. A failed
    ready row means fix, then re-run the whole gate. Merge with the method the repo's `CLAUDE.md`
@@ -170,8 +178,15 @@ The gate is evidence, not a reply — every check green and the ready evidence h
    ```sh
    gh pr merge <pr> --repo <owner>/<repo> <method flag>
    ```
-   Where `CLAUDE.md` names none, stop and report. A red check, a merge conflict, or a valid comment
-   still unfixed stops the run and gets reported instead.
+   Where `CLAUDE.md` names none, stop and report. A red blocking check, a merge conflict, or a
+   valid comment still unfixed stops the run and gets reported instead.
+
+   If `gh pr merge` or `gh pr edit` fails with GraphQL's "Projects (classic) deprecation" error,
+   do the same through REST (`-F` reads `@<file>` as its contents; `-f` would send the literal):
+   ```sh
+   gh api -X PUT repos/<owner>/<repo>/pulls/<pr>/merge -f merge_method=<merge|squash|rebase>
+   gh api -X PATCH repos/<owner>/<repo>/pulls/<pr> -F body=@<file>
+   ```
 6. **Bring `main` in** when the PR conflicts, or when a hand-stacked branch's dependency has merged:
    ```sh
    git fetch origin && git merge origin/main
