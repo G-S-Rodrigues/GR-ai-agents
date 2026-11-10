@@ -1,8 +1,8 @@
 ---
 name: GR-manage
 disable-model-invocation: true
-argument-hint: <path to a spec with a numbered part list>
-description: Drive a spec's numbered parts from plan to merged PR without waiting on the owner, dispatching one subagent per stage, timing every owner call out to its recommendation, and keeping the run's state in a ledger on disk. Started by the owner with a spec path.
+argument-hint: <path to a spec with a numbered part list> | handoff
+description: Drive a spec's numbered parts from plan to merged PR without waiting on the owner, dispatching one subagent per stage, timing every owner call out to its recommendation, and keeping the run's state in a ledger on disk. Started by the owner with a spec path; `handoff` passes the run to a fresh session while this one relays its agents' results.
 ---
 
 # Manage a run
@@ -25,6 +25,11 @@ is **parked** while everything else keeps going.
 Prompts for each stage are in [`references/dispatch-prompts.md`](references/dispatch-prompts.md).
 The ledger's and the report's formats are in [`references/ledger.md`](references/ledger.md).
 
+**`/GR-manage handoff`** — or your own context-budget trigger — runs
+[`references/handoff.md`](references/handoff.md) and nothing else in this file: it writes the handoff,
+gives the owner the command that starts the successor, and keeps this session open as a relay so the
+subagents already running finish instead of dying with it.
+
 ## Phase 0 — adopt the run
 
 Read the spec's part list. Resolve `<feature>` and read or create
@@ -44,7 +49,9 @@ lives only as long as this session; a successor arms its own.
 
 **Resuming is this same phase.** If the ledger exists, continue from it and re-ask nothing — not
 the spec path, not which part is next, not a ruling already recorded. A fresh session taking over
-from the ledger alone is the normal case, not a recovery mode.
+from the ledger alone is the normal case, not a recovery mode. A session started on a handoff file reads it before the ledger, waits on
+each landing file its agents table names, and re-dispatches an agent only when that row's fallback
+condition holds.
 
 ## Phase 1 — the part loop
 
@@ -179,9 +186,9 @@ tell what is running, what changed, what was decided for them, and what to answe
 A turn ends only while something in flight will wake you: a background subagent, a `Monitor` or a
 call's timer. The safety net catches a turn that broke this rule; it is never the reason to end one.
 Waiting for the owner is never the reason either: if nothing is in flight, there is undispatched work
-under **When a part parks**. On a stop (done, out of work
-after moving on, or the context-budget stop), delete the safety net with `CronDelete`, update the
-report and push-notify.
+under **When a part parks**. On a stop (done, or out of work after moving on), delete the safety net
+with `CronDelete`, update the report and push-notify. The context-budget stop is the handoff instead
+(`references/handoff.md`), because agents still in flight would die with an ended session.
 
 **Local only.** A scheduled cloud agent has no `gr-roboracer-dev` container and cannot run the gate,
 so it cannot take a stage of this run. Do not schedule one.

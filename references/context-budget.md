@@ -126,7 +126,9 @@ context differently: it holds the shape of the run and nothing else. Four rules 
 - **Write to the ledger before the next dispatch** — every ruling, commit SHA, worker name and open
   topic, never only in the reply. A subagent's report is a tool result, and Jev may prune it at the
   next compaction; a ruling is the expensive kind to lose.
-- **On your own trigger, stop.** Write the ledger, push-notify the owner, and end the session.
+- **On your own trigger, stop.** Write the ledger, push-notify the owner, and end the session. A
+  `GR-manage` coordinator runs its handoff (`GR-manage/references/handoff.md`) instead of ending: its
+  subagents live in its process, so it stays open as a relay until they land.
   Record in the ledger which subagents are still running, each with its id and step, since one cut
   off mid-step leaves work the successor has to find. A coordinator cannot start its own successor,
   so the ledger is what the next one resumes from — which is the whole reason it is complete rather
