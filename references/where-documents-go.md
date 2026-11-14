@@ -160,7 +160,9 @@ spec it implements can share a summary without colliding.
 
 ## What is committed differs per repo
 
-`.scratch/` is always gitignored. `docs/` is committed in some repos (GR-roboracer) and ignored in
+`.scratch/` is gitignored in the repos we own; in a fork (GR-roboracer-far-lio,
+-global_racetrajectory_optimization) and in a repo whose `.gitignore` lacks it, add `.scratch/` to
+`.git/info/exclude` before the first worktree, so the fork's upstream diff stays clean. `docs/` is committed in some repos (GR-roboracer) and ignored in
 others: read the repo's `.gitignore` before assuming a teammate can see a file you wrote.
 
 ## Tier decision
@@ -190,7 +192,8 @@ part, before the PR that carries `Closes #<owning issue>` opens. Every file in `
 | lasting result, dead end or idea | `docs/agents_knowledge/<concern>.md` |
 | still to do | a sub-issue of the owning issue, or a new issue |
 
-The harvested docs ride on that last PR. Once it merges, the issue closes, and the folder is
+The harvest writes the docs and leaves them uncommitted; they ride on that last PR in a commit
+the owner approves (**Tier decision**). Once it merges, the issue closes, and the folder is
 deleted by whoever wrote to it last — the coordinator after its ledger's final row, otherwise
 `GR-pr`. **Done when** every `open_topics/` and `findings/` file has a verdict in the last PR's
 body, and no `docs/` file links into `.scratch/`.

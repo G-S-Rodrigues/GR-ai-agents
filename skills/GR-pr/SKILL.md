@@ -114,7 +114,11 @@ Four rules make the difference between a useful body and an empty one:
 `Closes #<n>` only on the last — the issue lives in this repo, where both work. A sub-issue's branch
 closes its sub-issue. The PR that closes the **owning issue** carries a `## Harvest` section: the
 verdict for every `open_topics/` and `findings/` file, per `where-documents-go.md` **Closing out a
-feature**, or "nothing to harvest" when both are empty. Without it, stop before opening.
+feature**, or "nothing to harvest" when both are empty. Under `GR-manage` the coordinator owes
+it: without it, stop before opening and report. Under the owner, run it yourself **before the ready
+gate starts**, since a commit after the ready SHA voids the evidence: dispatch a `GR-general` with
+`GR-manage`'s `references/dispatch-prompts.md` **harvest** template, commit what it wrote through
+`GR-commit`, and only then does the gate run.
 
 ### Iterate, then create
 

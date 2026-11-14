@@ -3,15 +3,18 @@
 directory is named after its branch.
 
 Reads the hook JSON on stdin. Exit 0 lets the command run; exit 2 blocks it, and stderr is what
-the agent reads. Commands it cannot parse run unchecked: a guard that wedges a session costs more
+the agent reads. It acts only in a repo whose origin is one of ours (GR_REMOTE): the hook is
+installed user-wide, and other repos keep their own branch rules. Commands it cannot parse run unchecked: a guard that wedges a session costs more
 than one misnamed branch.
 """
 import json
 import os
 import re
 import shlex
+import subprocess
 import sys
 
+GR_REMOTE = re.compile(r"[:/]G-S-Rodrigues/GR-[^/]+?(\.git)?/?$")
 ISSUE_BRANCH = re.compile(r"^[0-9]+-[A-Za-z0-9]")
 # The default branch is reset (`git checkout -B main origin/main`), never created for work.
 DEFAULT_BRANCHES = {"main", "master"}
@@ -177,17 +180,49 @@ def problems(sub, args):
     return []
 
 
+def git_dir_of(seg, cwd):
+    """The directory a git segment runs in: its `-C` value, else the shell's current one."""
+    i = seg.index("git") + 1 if "git" in seg else len(seg)
+    while i < len(seg) and seg[i].startswith("-"):
+        if seg[i] == "-C" and i + 1 < len(seg):
+            return os.path.join(cwd, os.path.expanduser(seg[i + 1]))
+        i += 2 if seg[i] in GIT_VALUE_OPTS else 1
+    return cwd
+
+
+def ours(directory):
+    """True unless `directory` is a git repo whose origin is not one of ours. A path that is
+    not a repo, or not there yet, counts as ours: the guard errs toward checking."""
+    try:
+        out = subprocess.run(["git", "-C", directory, "remote", "get-url", "origin"],
+                             capture_output=True, text=True, timeout=5)
+        if out.returncode == 0:
+            return bool(GR_REMOTE.search(out.stdout.strip()))
+        inside = subprocess.run(["git", "-C", directory, "rev-parse", "--git-dir"],
+                                capture_output=True, timeout=5)
+        return inside.returncode != 0  # a repo with no origin is not ours
+    except Exception:
+        return True
+
+
 def main():
     try:
         payload = json.load(sys.stdin)
         command = payload.get("tool_input", {}).get("command", "")
         if "git" not in command:
             return 0
-        found = []
+        start = payload.get("cwd") or os.getcwd()
+        cwd, found = start, []
         for seg in segments(command):
+            if seg[:1] == ["cd"] and len(seg) > 1:
+                target = os.path.join(cwd, os.path.expanduser(seg[1]))
+                cwd = target if os.path.isdir(target) else cwd
+                continue
             parsed = git_subcommand(seg)
             if parsed:
-                found += problems(*parsed)
+                hits = problems(*parsed)
+                if hits and ours(git_dir_of(seg, cwd)):
+                    found += hits
     except Exception:
         return 0
     if not found:

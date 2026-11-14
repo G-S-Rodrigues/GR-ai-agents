@@ -8,6 +8,15 @@ here=$(cd "$(dirname "$0")" && pwd)
 hook="$here/../../../hooks/branch_guard.py"
 failed=0
 
+# case_in DIR ID WANT COMMAND: as case_, with the hook's cwd set to DIR.
+case_in() {
+  local dir="$1" id="$2" want="$3" cmd="$4" got
+  python3 -c 'import json,sys; print(json.dumps({"tool_name":"Bash","cwd":sys.argv[2],"tool_input":{"command":sys.argv[1]}}))' "$cmd" "$dir" \
+    | timeout 10 python3 "$hook" >/dev/null 2>&1
+  got=$?
+  if [ "$got" = "$want" ]; then echo "PASS $id"; else echo "FAIL $id: want $want got $got in $dir: $cmd"; failed=1; fi
+}
+
 # case ID WANT COMMAND: run the hook on COMMAND, expect exit WANT.
 case_() {
   local id="$1" want="$2" cmd="$3" got
@@ -67,5 +76,14 @@ case_ GUARD-38 2 $'cat <<EOF >notes\ndon\'t\nEOF\ngit switch -c d2-data-layout'
 case_ GUARD-39 0 'git checkout -B main origin/main'
 case_ GUARD-40 0 'git branch -f main origin/main'
 case_ GUARD-41 0 'git switch -C master origin/master'
+
+# Only repos whose origin is one of ours are guarded.
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+git init -q "$tmp/other" && git -C "$tmp/other" remote add origin git@github.com:someone/other.git
+git init -q "$tmp/ours" && git -C "$tmp/ours" remote add origin https://github.com/G-S-Rodrigues/GR-roboracer.git
+case_in "$tmp/other" GUARD-42 0 'git checkout -b feature-x'
+case_in "$tmp/ours"  GUARD-43 2 'git checkout -b feature-x'
+case_in "$tmp/ours"  GUARD-44 0 "git -C $tmp/other checkout -b feature-x"
+case_in "$tmp/other" GUARD-45 2 "cd $tmp/ours && git checkout -b feature-x"
 
 exit "$failed"

@@ -86,8 +86,10 @@ sub-issue of the owning issue before its branch exists, and its branch and ledge
 sub-issue's number (`where-documents-go.md` **Issues, branches and worktrees**).
 
 **The last part carries the harvest.** Before its ready gate, dispatch a `GR-general` to run
-`where-documents-go.md` **Closing out a feature** and commit the docs on the last part's branch; its
-verdict table goes to `run/<date>-harvest.md` for `GR-pr` to quote.
+`where-documents-go.md` **Closing out a feature** on the last part's branch; its verdict table goes
+to `run/<date>-harvest.md` for `GR-pr` to quote. The harvest writes the docs and does not commit
+them: they are committed-tier, so their commit message goes to the owner through `GR-commit` — the
+run's one owner stop before the last ready gate.
 
 **One heavy lane:** one build or ready run at a time. A second in-flight part works in a worktree at
 `<repo>/.scratch/<branch>` (the repo's gotchas name the worktree traps) and queues for the lane. Fix subagents queue for the
@@ -211,5 +213,7 @@ so it cannot take a stage of this run. Do not schedule one.
 
 A part reported merged with no merge SHA in the ledger is not done — it is unrecorded.
 
-When all of these hold, report to the owner, then delete `<scratch>/<feature>/`: the last PR's
-harvest moved what outlives it.
+When all of these hold, report to the owner, then post `run/report.md`'s calls table as a comment
+on the owning issue (`gh issue comment <n> --repo <owner>/<repo> --body-file <file>`) — provisional
+calls the owner has not vetoed yet must outlive the folder — and only then delete
+`<scratch>/<feature>/`: the last PR's harvest moved the rest.

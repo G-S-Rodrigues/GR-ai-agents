@@ -120,10 +120,13 @@ Phase 4 — do not plan or implement. `GR-tdd` owns the plan.
 
 On the owner's go-ahead, and not before.
 
-**The owning issue already exists** (see **Where artifacts go**); give it the spec's goals:
+**The owning issue already exists** (see **Where artifacts go**). Append the spec's goals below
+what is there — the body may be the user's own words, so never replace it:
 
 ```sh
-gh issue edit <issue> --repo <owner>/<repo> --body "<the spec's Context and Goals>"
+gh issue view <issue> --repo <owner>/<repo> --json body --jq .body > <tmp>/body.md
+printf '\n\n## Spec goals\n\n%s\n' "<the spec's Context and Goals>" >> <tmp>/body.md
+gh issue edit <issue> --repo <owner>/<repo> --body-file <tmp>/body.md
 ```
 
 Then rewrite the spec's `## Scope` as a numbered **part list**, each part naming:
@@ -163,7 +166,9 @@ user named; when there is none, create it before the first file is written — `
 repo the work lands in, titled with the idea in one line, its body the user's words — so the folder
 carries its number from the start. Resolve it **once**, before the first file, and state the
 resolved path in one line: in full mode that is Phase 0, before the first question; quick mode
-writes no digest, so it resolves `<feature>` only when a spec is asked for.
+writes no digest, so it resolves `<feature>` only when a spec is asked for. **When the idea is
+dropped**, close the issue this skill created, so no orphan stays open:
+`gh issue close <n> --repo <owner>/<repo> --reason "not planned" --comment "<why, one line>"`.
 
 ## Digest file
 
