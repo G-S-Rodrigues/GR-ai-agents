@@ -9,8 +9,9 @@ A `PreToolUse` guard on `Bash`. It blocks, with the naming rule on stderr:
 - a worktree whose directory is not named after its branch — `.scratch/slam-m3` holding
   `47-lidar-slam-m3`.
 
-Listing, deleting and renaming branches, detached worktrees and commands it cannot parse run
-unchecked. The rule it enforces is **Issues, branches and worktrees** in
+Listing, deleting and renaming branches, resetting `main` or `master`, detached worktrees and
+commands it cannot parse run unchecked. It reads a command as the shell does: one command per line,
+redirections and heredoc bodies left out. The rule it enforces is **Issues, branches and worktrees** in
 [`where-documents-go.md`](../references/where-documents-go.md). Cases: `scripts/tests/branch_guard/run.sh`.
 
 User settings (`~/.claude/settings.json`), since every GR repo names branches this way:

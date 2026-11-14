@@ -49,5 +49,23 @@ case_ GUARD-25 0 'echo "git checkout -b hl-land"'
 case_ GUARD-26 0 'git log --oneline -3'
 # Unparseable input lets the command run rather than wedging the session.
 case_ GUARD-27 0 'echo "unterminated'
+# Redirections are not arguments.
+case_ GUARD-28 0 'git branch 2>/dev/null'
+case_ GUARD-29 0 'git branch 2>&1 | head'
+case_ GUARD-30 0 'git worktree add .scratch/47-lidar-slam-2 2>&1 | tail -3'
+case_ GUARD-31 0 'git branch > /tmp/branches'
+case_ GUARD-32 2 'git checkout -b hl-land 2>&1'
+# A newline ends a command, as in the shell.
+case_ GUARD-33 0 $'git branch\ngit log --oneline -3'
+case_ GUARD-34 2 $'git fetch\ngit checkout -b hl-land'
+case_ GUARD-35 0 $'git branch # list them\ngit status'
+case_ GUARD-36 2 $'git worktree add \\\n  -b p8-wt .scratch/p8-wt origin/main'
+# A heredoc body is data, not commands.
+case_ GUARD-37 0 $'git commit -F - <<\'EOF\'\nThis commit says why\ngit branch foo\nEOF'
+case_ GUARD-38 2 $'cat <<EOF >notes\ndon\'t\nEOF\ngit switch -c d2-data-layout'
+# Resetting the default branch creates no work branch.
+case_ GUARD-39 0 'git checkout -B main origin/main'
+case_ GUARD-40 0 'git branch -f main origin/main'
+case_ GUARD-41 0 'git switch -C master origin/master'
 
 exit "$failed"

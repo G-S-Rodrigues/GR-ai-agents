@@ -13,7 +13,10 @@ import shlex
 import sys
 
 ISSUE_BRANCH = re.compile(r"^[0-9]+-[A-Za-z0-9]")
-SEPARATORS = {"&&", "||", ";", "|", "&", "(", ")", ";;"}
+# The default branch is reset (`git checkout -B main origin/main`), never created for work.
+DEFAULT_BRANCHES = {"main", "master"}
+PUNCTUATION = set("();<>|&")
+HEREDOC = re.compile(r"(?<!<)<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
 RULE = ("A branch is <issue>-<slug>, numbered by the GitHub issue that owns the work, or by a "
         "sub-issue of it for a part or fix added mid-run; its worktree is <repo>/.scratch/<branch>. "
         "See 'Issues, branches and worktrees' in ~/.claude/GR-references/where-documents-go.md.")
@@ -29,19 +32,66 @@ BRANCH_HOUSEKEEPING = {
 GIT_VALUE_OPTS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
 
 
+def logical_lines(command):
+    """Split at unquoted newlines, as the shell does, joining continued lines and dropping
+    heredoc bodies, which are data rather than commands."""
+    command = command.replace("\\\n", "")
+    lines, cur, quote, i, n = [], [], None, 0, len(command)
+    while i < n:
+        c = command[i]
+        if quote:
+            if c == quote:
+                quote = None
+            elif c == "\\" and quote == '"' and i + 1 < n:
+                cur.append(c)
+                i += 1
+                c = command[i]
+        elif c in "'\"":
+            quote = c
+        elif c == "\\" and i + 1 < n:
+            cur.append(c)
+            i += 1
+            c = command[i]
+        elif c == "\n":
+            line = "".join(cur)
+            lines.append(line)
+            cur, i = [], i + 1
+            for m in HEREDOC.finditer(line):
+                while i < n:  # skip the body through its delimiter line
+                    end = command.find("\n", i)
+                    end = n if end < 0 else end
+                    body, i = command[i:end], end + 1
+                    if body.strip() == m.group(2):
+                        break
+            continue
+        cur.append(c)
+        i += 1
+    lines.append("".join(cur))
+    return lines
+
+
 def segments(command):
-    lexer = shlex.shlex(command, posix=True, punctuation_chars=True)
-    lexer.whitespace_split = True
-    seg = []
-    for tok in lexer:
-        if tok in SEPARATORS:
-            if seg:
-                yield seg
-            seg = []
-        else:
-            seg.append(tok)
-    if seg:
-        yield seg
+    """Yield each simple command's words, without redirections and their targets."""
+    for line in logical_lines(command):
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        seg, redirect_target = [], False
+        for tok in lexer:
+            if tok and set(tok) <= PUNCTUATION:
+                if "<" in tok or ">" in tok:
+                    if seg and seg[-1].isdigit():  # the fd in 2>
+                        seg.pop()
+                    redirect_target = True
+                    continue
+                if seg:
+                    yield seg
+                seg = []
+            elif redirect_target:
+                redirect_target = False
+            else:
+                seg.append(tok)
+        if seg:
+            yield seg
 
 
 def git_subcommand(seg):
@@ -81,6 +131,10 @@ def positionals(args, value_flags=()):
     return out
 
 
+def unnumbered(name):
+    return not ISSUE_BRANCH.match(name) and name not in DEFAULT_BRANCHES
+
+
 def looks_like_local_branch(ref):
     return not ("/" in ref or ref == "HEAD" or re.fullmatch(r"[0-9a-f]{7,40}", ref)
                 or ref.startswith(("HEAD~", "HEAD^")))
@@ -89,15 +143,15 @@ def looks_like_local_branch(ref):
 def problems(sub, args):
     if sub == "checkout":
         name = value_after(args, ["-b", "-B", "--orphan"])
-        return [f"new branch '{name}' has no issue number"] if name and not ISSUE_BRANCH.match(name) else []
+        return [f"new branch '{name}' has no issue number"] if name and unnumbered(name) else []
     if sub == "switch":
         name = value_after(args, ["-c", "-C", "--create", "--force-create", "--orphan"])
-        return [f"new branch '{name}' has no issue number"] if name and not ISSUE_BRANCH.match(name) else []
+        return [f"new branch '{name}' has no issue number"] if name and unnumbered(name) else []
     if sub == "branch":
         if any(a.split("=", 1)[0] in BRANCH_HOUSEKEEPING for a in args):
             return []
         pos = positionals(args)
-        return [f"new branch '{pos[0]}' has no issue number"] if pos and not ISSUE_BRANCH.match(pos[0]) else []
+        return [f"new branch '{pos[0]}' has no issue number"] if pos and unnumbered(pos[0]) else []
     if sub == "worktree" and args and args[0] == "add":
         rest = args[1:]
         if "--detach" in rest or "-d" in rest:
@@ -114,7 +168,7 @@ def problems(sub, args):
         if branch is None:
             return []
         found = []
-        if not ISSUE_BRANCH.match(branch):
+        if unnumbered(branch):
             found.append(f"branch '{branch}' has no issue number")
         if dirname != branch:
             found.append(f"worktree directory '{dirname}' is not named after its branch "
