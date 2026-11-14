@@ -69,9 +69,11 @@ Changing any of these means changing skills, so they're recorded here rather tha
   `colcon build` is broken.
 - **`${HOME}/gitroot` is not a git repo** — it's ~13 independent repos side by side. "The repo"
   always means one of them.
-- **Two artifact trees.** Committed standing knowledge in `<repo>/docs/{agents,adr}` plus
-  `CONTEXT.md`; per-feature work in `<scratch>/<feature>/{grill,spec,plans}/`. Reach decides the
-  tree — cross-repo work goes to `gitroot/.scratch/`. Full rules in `references/where-documents-go.md`.
+- **Two artifact trees.** Committed standing knowledge in `<repo>/docs/{agents,agents_knowledge,adr}`
+  plus `CONTEXT.md`; per-feature work in
+  `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,findings,open_topics}/`, where
+  `<feature>` is `<repo>/<issue>-<slug>` of the owning issue. Full rules in
+  `references/where-documents-go.md`.
 - **Agent docs have named consumers.** A skill names the file it needs — `repo-gotchas.md`,
   `testing.md`, `lint-and-precommit.md` — and the repo's `AGENTS.md` carries the table pointing at
   them. A skill that says "read `docs/agents/`" is asking for a directory scan that will not happen.

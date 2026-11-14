@@ -17,7 +17,7 @@ Turn one issue into a grounded scope report.
 ## Phase 0 — Frame
 
 1. Read the issue: `gh issue view <n> --repo <owner>/<issue-repo> --json number,title,body,labels,comments`.
-2. Resolve `<feature>` as the branch name GitHub itself would generate: the issue number, then the
+2. Resolve `<feature>` as `<issue-repo>/` plus the branch name GitHub itself would generate: the issue number, then the
    **whole** title lowercased and hyphenated, nothing dropped. Issue 62, *Mark different waypoint types
    in the map in different colours*, gives `62-mark-different-waypoint-types-in-the-map-in-different-colours`.
    The branch does not exist yet, so the issue supplies the name it will later carry.
@@ -100,8 +100,9 @@ the grill. This is the same parking rule `GR-brainstorming` runs on, applied one
 
 ## Phase 3 — Linked branches
 
-Propose one branch per repo needing a production change, each named `<feature>` — the same name in
-every repo, so the issue number and title identify the work wherever it lands. Wait for approval.
+Propose one branch per repo needing a production change, each named `<feature>` without its repo
+prefix (`62-mark-different-…`) — the same name in every repo, so the issue number and title identify
+the work wherever it lands. Wait for approval.
 
 Create them through GitHub so they appear in the issue's Development panel — a locally created branch
 pushed afterwards is **not** linked, and nothing links it retroactively:

@@ -17,8 +17,9 @@ Announce the depth chosen (see **Depth**) in one line before the first question.
 
 ## Phase 0 — Ground
 
-Name the repos in scope, then read `docs/agents/repo-gotchas.md` in each and the code the idea
-touches, so questions land on what is actually there. Read `CONTEXT.md` if it exists and use its
+Name the repos in scope, then read `docs/agents/repo-gotchas.md` in each, the
+`docs/agents_knowledge/<concern>.md` files the idea touches (what was measured, dead ends, ideas
+already raised), and the code the idea touches, so questions land on what is actually there. Read `CONTEXT.md` if it exists and use its
 vocabulary in every question; respect the ADRs in the area — where the idea contradicts one, that
 contradiction is itself a question to put to the user.
 
@@ -119,10 +120,13 @@ Phase 4 — do not plan or implement. `GR-tdd` owns the plan.
 
 On the owner's go-ahead, and not before.
 
-**One issue per feature**, in the repo the work lands in:
+**The owning issue already exists** (see **Where artifacts go**). Append the spec's goals below
+what is there — the body may be the user's own words, so never replace it:
 
 ```sh
-gh issue create --repo <owner>/<repo> --title "<feature>" --body "<the spec's Context and Goals>"
+gh issue view <issue> --repo <owner>/<repo> --json body --jq .body > <tmp>/body.md
+printf '\n\n## Spec goals\n\n%s\n' "<the spec's Context and Goals>" >> <tmp>/body.md
+gh issue edit <issue> --repo <owner>/<repo> --body-file <tmp>/body.md
 ```
 
 Then rewrite the spec's `## Scope` as a numbered **part list**, each part naming:
@@ -157,9 +161,14 @@ toward resolving them by calling rather than asking.
 ## Where artifacts go
 
 Read `~/.claude/GR-references/where-documents-go.md` — it is the single source of truth for the grill,
-spec, and plan paths. `<scratch>` is always `${HOME}/gitroot/.scratch/`; resolve `<feature>` — the
-branch name — **once**, in Phase 0, and state the resolved path in one line before the first
-question.
+spec, and plan paths. `<feature>` is `<repo>/<issue>-<slug>` of the **owning issue**. Use the issue the
+user named; when there is none, create it before the first file is written — `gh issue create` in the
+repo the work lands in, titled with the idea in one line, its body the user's words — so the folder
+carries its number from the start. Resolve it **once**, before the first file, and state the
+resolved path in one line: in full mode that is Phase 0, before the first question; quick mode
+writes no digest, so it resolves `<feature>` only when a spec is asked for. **When the idea is
+dropped**, close the issue this skill created, so no orphan stays open:
+`gh issue close <n> --repo <owner>/<repo> --reason "not planned" --comment "<why, one line>"`.
 
 ## Digest file
 

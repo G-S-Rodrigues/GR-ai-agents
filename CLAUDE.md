@@ -35,6 +35,9 @@ Every skill installed by the script is a **symlink into this repo**. A teammate 
    installers glob `skills/*/` and `agents/*.md`, so there is no list to edit — but **promoting** a
    skill out of `skills/in-progress/` leaves a `--with-drafts` symlink dangling until
    `uninstall.sh` and `install.sh` are re-run.
+4. Land the change by PR. PRs land as merge commits (`gh pr merge --merge`), so each commit of a
+   part stays on `main`. There is no CI: the ready evidence is `scripts/tests/*/run.sh`, every one
+   exiting 0 on the branch.
 
 ## Writing skills that stay predictable
 
@@ -74,9 +77,10 @@ Changing any of these means changing skills, so they're recorded here rather tha
   `colcon build` is broken.
 - **`${HOME}/gitroot` is not a git repo** — it's independent repos side by side. "The repo" always
   means one of them.
-- **Two artifact trees.** Committed standing knowledge in `<repo>/docs/{agents,adr}` plus
-  `CONTEXT.md`; per-feature work in
-  `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,open_topics}/`. One location, and
+- **Two artifact trees.** Committed standing knowledge in `<repo>/docs/{agents,agents_knowledge,adr}`
+  plus `CONTEXT.md`; per-feature work in
+  `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,findings,open_topics}/`, where
+  `<feature>` is `<repo>/<issue>-<slug>` of the owning issue. One location, and
   it sits outside every repo working tree so a `git clean -xdf` cannot reach it. Full rules in
   `references/where-documents-go.md`.
 - **A run is driven from disk, not from a session.** `GR-manage` keeps the ledger and dispatches one

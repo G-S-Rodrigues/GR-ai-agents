@@ -1,7 +1,37 @@
 # Hooks
 
-Empty for now — this directory is the agreed home for hook scripts so the first one doesn't have to
-invent a location.
+## `branch_guard.py`
+
+A `PreToolUse` guard on `Bash`. It blocks, with the naming rule on stderr:
+
+- a new branch (`git checkout -b`, `git switch -c`, `git branch <name>`, `git worktree add`) whose
+  name does not start with an issue number — `hl-land`, `d2-data-layout`;
+- a worktree whose directory is not named after its branch — `.scratch/slam-m3` holding
+  `47-lidar-slam-m3`.
+
+Listing, deleting and renaming branches, resetting `main` or `master`, detached worktrees and
+commands it cannot parse run unchecked. It reads a command as the shell does: one command per line,
+redirections and heredoc bodies left out. The rule it enforces is **Issues, branches and worktrees** in
+[`where-documents-go.md`](../references/where-documents-go.md). Cases: `scripts/tests/branch_guard/run.sh`.
+
+User settings (`~/.claude/settings.json`), since every GR repo names branches this way:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "f=\"$(dirname \"$(readlink -f ~/.claude/GR-references)\")/hooks/branch_guard.py\"; [ ! -f \"$f\" ] || python3 \"$f\"" }]
+      }
+    ]
+  }
+}
+```
+
+The command finds the checkout through the installed `GR-references` link, as `context-budget.md`
+finds `context_watch.sh`, and lets the command run when the script is absent: Python exits 2 on a
+missing file, and exit 2 from a `PreToolUse` hook blocks every Bash call.
 
 ## Why the installer doesn't install them
 

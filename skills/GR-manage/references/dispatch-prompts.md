@@ -70,6 +70,26 @@ Ledger: <ledger path>. Write your digest to <scratch>/<feature>/review/ — GR-p
 <budget>
 ```
 
+## harvest — `GR-general` (Sonnet), last part only
+
+```
+Run the close-out harvest of <scratch>/<feature>/ on <branch> in <repo>, as
+~/.claude/GR-references/where-documents-go.md **Closing out a feature** describes it.
+
+Ledger: <ledger path>. Give every file in open_topics/ and findings/ exactly one verdict from that
+section's table and write the docs it sends to the repo, on <branch>. Do not commit: the docs
+are committed-tier and the owner approves their commit. Before reporting, run the repo's doc
+checks and every gate test that scans tracked text (forbidden names, links, line length) on the
+files you wrote, and fix what they flag. Create any issue a "still to do" verdict needs. Write the
+verdict table — file, verdict, where it went — to <scratch>/<feature>/run/<date>-harvest.md;
+GR-pr quotes it.
+
+Report: the verdict table's path, the files written, the checks run and their result, and every
+issue created.
+
+<budget>
+```
+
 ## ready gate — `GR-test-runner` (Sonnet)
 
 ```
@@ -91,6 +111,7 @@ Run GR-pr on <branch> in <repo>. You are invoked by GR-manage: the PR-text appro
 and is already satisfied — do not stop for it.
 
 Issue: #<n>. Use `Refs #<n>`, or `Closes #<n>` if this is the last part.
+Harvest verdicts to quote (last part only): <scratch>/<feature>/run/<date>-harvest.md, or none.
 Review digest: <path>. Open topics to quote in the body: <paths, or none>.
 
 The ready gate started beside you, and its record will be at <scratch>/<feature>/ready/. Open the PR

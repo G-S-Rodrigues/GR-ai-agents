@@ -5,7 +5,7 @@ argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to `${HOME}/gitroot/.scratch/<feature>/run/handoff-<date>-<summary>.md`, with `<feature>`, `<date>` and `<summary>` as `~/.claude/GR-references/where-documents-go.md` defines them, so it survives a reboot. On `main`, where there is no feature, save to `${HOME}/gitroot/.scratch/handoffs/<date>-<summary>.md`.
+Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to `${HOME}/gitroot/.scratch/<feature>/run/handoff-<date>-<summary>.md`, with `<feature>`, `<date>` and `<summary>` as `~/.claude/GR-references/where-documents-go.md` defines them, so it survives a reboot. With no owning issue, where there is no feature, save to `${HOME}/gitroot/.scratch/handoffs/<date>-<summary>.md`.
 
 Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 

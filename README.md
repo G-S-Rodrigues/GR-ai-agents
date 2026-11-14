@@ -97,9 +97,9 @@ The ledger is what makes the resident session optional. Every ruling, SHA and op
 to disk before the next dispatch, so a fresh session resumes a run it did not start — and a
 compaction costs nothing that mattered.
 
-Artifacts land in `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,open_topics}/`,
-where `<feature>` is the branch name. One location, outside every repo working tree, so a
-`git clean -xdf` inside a repo cannot reach a run's plans or its ledger. Standing knowledge goes instead to `<repo>/docs/{agents,adr}/` and
+Artifacts land in `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,findings,open_topics}/`,
+where `<feature>` is `<repo>/<issue>-<slug>` of the issue that owns the work. One location, outside every repo working tree, so a
+`git clean -xdf` inside a repo cannot reach a run's plans or its ledger. Standing knowledge goes instead to `<repo>/docs/{agents,agents_knowledge,adr}/` and
 `CONTEXT.md`. Full rules in [`references/where-documents-go.md`](references/where-documents-go.md).
 
 ## Skills
@@ -159,9 +159,12 @@ notices. A reference no session is told to read is never read, so add this line 
 - Every session and every subagent keeps working through compactions and hands off only when compaction stops working. Before dispatching a subagent, driving another session, or starting work long enough to compact, read `~/.claude/GR-references/context-budget.md`.
 ```
 
-Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log.
+Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log;
+`worktree_gc.sh`, run inside a repo, lists the worktrees whose branch has landed and that are clean,
+and removes them with `--remove`.
 
-[`hooks/`](hooks/) is the agreed home for hook scripts and is empty so far. A hook ships with the
+[`hooks/`](hooks/) holds `branch_guard.py`, which blocks a branch without an issue number and a
+worktree not named after its branch; [`hooks/README.md`](hooks/README.md) has its snippet. A hook ships with the
 `settings.json` snippet that arms it, which you paste yourself: the installer prints such lines and
 writes none (the `claude` CLI records the plugin there). [`statusline/`](statusline/statusline.sh) is vendored from
 [daniel3303/ClaudeCodeStatusLine](https://github.com/daniel3303/ClaudeCodeStatusLine) with local

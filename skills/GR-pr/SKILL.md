@@ -111,7 +111,14 @@ Four rules make the difference between a useful body and an empty one:
   quote a measurement in the body, and keep its source file in `<scratch>/<feature>/run/`.
 
 **Closing the issue.** One issue covers a feature's parts, so use `Refs #<n>` on every part's PR and
-`Closes #<n>` only on the last — the issue lives in this repo, where both work.
+`Closes #<n>` only on the last — the issue lives in this repo, where both work. A sub-issue's branch
+closes its sub-issue. The PR that closes the **owning issue** carries a `## Harvest` section: the
+verdict for every `open_topics/` and `findings/` file, per `where-documents-go.md` **Closing out a
+feature**, or "nothing to harvest" when both are empty. Under `GR-manage` the coordinator owes
+it: without it, stop before opening and report. Under the owner, run it yourself **before the ready
+gate starts**, since a commit after the ready SHA voids the evidence: dispatch a `GR-general` with
+`GR-manage`'s `references/dispatch-prompts.md` **harvest** template, commit what it wrote through
+`GR-commit`, and only then does the gate run.
 
 ### Iterate, then create
 
@@ -195,9 +202,19 @@ every other check is blocking.
    conflicting files and escalate; once resolved, the ready gate re-runs. A conflict-free merge runs
    no gate, because CI's merge ref covers integration.
 
+7. **Clear the worktree** once merged. When the branch has a worktree, remove it and the local
+   branch from the main checkout:
+   ```sh
+   git worktree remove <repo>/.scratch/<branch> && git branch -D <branch>
+   ```
+   A removal that fails on root-owned build output is reported with its path, not forced. When the
+   merge closed the owning issue (`gh issue view <n> --json state`) and no coordinator dispatched
+   you, delete `<scratch>/<feature>/` — the harvest already moved what outlives it. Under a
+   coordinator the folder holds its ledger, so the coordinator deletes it last.
+
 ## Done
 
 The branch has a merged PR, or a stated reason it does not: its text is still in iteration, a check
 is red, there is no ready evidence for HEAD, the ready gate failed, no merge method is named, or a
-valid review comment is unfixed. Report the PR's URL, its merge commit, and any review
-comments with their verdicts.
+valid review comment is unfixed. Report the PR's URL, its merge commit, any review
+comments with their verdicts, and whether the worktree and scratch folder were removed.
