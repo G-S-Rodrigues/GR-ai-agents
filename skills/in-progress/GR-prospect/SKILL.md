@@ -100,8 +100,9 @@ the grill. This is the same parking rule `GR-brainstorming` runs on, applied one
 
 ## Phase 3 — Linked branches
 
-Propose one branch per repo needing a production change, each named `<feature>` — the same name in
-every repo, so the issue number and title identify the work wherever it lands. Wait for approval.
+Propose one branch per repo needing a production change, each named `<feature>` without its repo
+prefix (`62-mark-different-…`) — the same name in every repo, so the issue number and title identify
+the work wherever it lands. Wait for approval.
 
 Create them through GitHub so they appear in the issue's Development panel — a locally created branch
 pushed afterwards is **not** linked, and nothing links it retroactively:

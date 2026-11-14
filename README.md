@@ -97,9 +97,9 @@ The ledger is what makes the resident session optional. Every ruling, SHA and op
 to disk before the next dispatch, so a fresh session resumes a run it did not start — and a
 compaction costs nothing that mattered.
 
-Artifacts land in `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,open_topics}/`,
-where `<feature>` is the branch name. One location, outside every repo working tree, so a
-`git clean -xdf` inside a repo cannot reach a run's plans or its ledger. Standing knowledge goes instead to `<repo>/docs/{agents,adr}/` and
+Artifacts land in `~/gitroot/.scratch/<feature>/{grill,spec,plans,review,ready,run,findings,open_topics}/`,
+where `<feature>` is `<repo>/<issue>-<slug>` of the issue that owns the work. One location, outside every repo working tree, so a
+`git clean -xdf` inside a repo cannot reach a run's plans or its ledger. Standing knowledge goes instead to `<repo>/docs/{agents,agents_knowledge,adr}/` and
 `CONTEXT.md`. Full rules in [`references/where-documents-go.md`](references/where-documents-go.md).
 
 ## Skills

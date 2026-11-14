@@ -1,7 +1,8 @@
 # Where documents go
 
 Single source of truth for paths. `GR-brainstorming`, `GR-tdd`, `GR-implement-tdd`,
-`GR-domain-modeling`, and `GR-review` all point here — change a path here, not in a skill.
+`GR-domain-modeling`, `GR-review`, `GR-manage` and `GR-pr` all point here — change a path here, not
+in a skill.
 
 ## The two trees
 
