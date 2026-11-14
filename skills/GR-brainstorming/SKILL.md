@@ -161,8 +161,9 @@ Read `~/.claude/GR-references/where-documents-go.md` — it is the single source
 spec, and plan paths. `<feature>` is `<repo>/<issue>-<slug>` of the **owning issue**. Use the issue the
 user named; when there is none, create it before the first file is written — `gh issue create` in the
 repo the work lands in, titled with the idea in one line, its body the user's words — so the folder
-carries its number from the start. Quick mode writes no file and creates no issue. Resolve it
-**once**, in Phase 0, and state the resolved path in one line before the first question.
+carries its number from the start. Resolve it **once**, before the first file, and state the
+resolved path in one line: in full mode that is Phase 0, before the first question; quick mode
+writes no digest, so it resolves `<feature>` only when a spec is asked for.
 
 ## Digest file
 
