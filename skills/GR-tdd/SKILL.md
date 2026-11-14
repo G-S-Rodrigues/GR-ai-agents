@@ -63,8 +63,6 @@ Announce the choice with the reason and record it in the plan. In subagent mode:
 
 - **claude** (default): plan at normal altitude — steps, anchors, and verification commands. Trust the
   implementer to know the toolchain.
-- **copilot**: the plan must stand alone. Exact commands with expected output, no reliance on these
-  skills or any Claude-only tool, and `docs/agents/` referenced by path rather than assumed read.
 - **unspecified**: do not tailor. Note in one line that a cheaper model could execute it.
 
 ## 6. Decide the test tiers

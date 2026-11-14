@@ -9,7 +9,7 @@ never omitted — if one does not apply, say so in a line rather than dropping i
 **Date:** YYYY-MM-DD
 **Spec:** [<name>.md](../spec/<name>.md)        # omit entirely if there is no spec
 **Mode:** inline | subagent — <the reason, one clause>
-**Executor:** claude | copilot | unspecified
+**Executor:** claude | unspecified
 
 ## Context                                       # required
 
@@ -98,8 +98,6 @@ regressions.
 - `**Date:**` directly under the title. `**Spec:**` directly under it when one exists.
 - The mode decision is recorded so `GR-implement-tdd` does not re-decide it.
 - Anchor with `file:line`, not prose location.
-- Copilot executor only: expand every step into ordered actions with exact commands and expected
-  output, and reference `docs/agents/*` by path.
 - Never plan a production-code change whose purpose is to make a test possible. Reuse-driven changes
   (see `reuse-and-dedup.md`) are the one sanctioned category, and they must leave existing tests green
   unedited.
