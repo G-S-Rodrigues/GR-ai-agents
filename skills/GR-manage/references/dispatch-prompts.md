@@ -70,6 +70,23 @@ Ledger: <ledger path>. Write your digest to <scratch>/<feature>/review/ — GR-p
 <budget>
 ```
 
+## harvest — `GR-general` (Sonnet), last part only
+
+```
+Run the close-out harvest of <scratch>/<feature>/ on <branch> in <repo>, as
+~/.claude/GR-references/where-documents-go.md **Closing out a feature** describes it.
+
+Ledger: <ledger path>. Give every file in open_topics/ and findings/ exactly one verdict from that
+section's table, write the docs it sends to the repo, and commit them on <branch> in one commit
+whose message completes "This commit ...". Create any issue a "still to do" verdict needs. Write
+the verdict table — file, verdict, where it went — to <scratch>/<feature>/run/<date>-harvest.md;
+GR-pr quotes it.
+
+Report: the verdict table's path, the commit SHA, and every issue created.
+
+<budget>
+```
+
 ## ready gate — `GR-test-runner` (Sonnet)
 
 ```
