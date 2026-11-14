@@ -35,6 +35,9 @@ Every skill installed by the script is a **symlink into this repo**. A teammate 
    installers glob `skills/*/` and `agents/*.md`, so there is no list to edit — but **promoting** a
    skill out of `skills/in-progress/` leaves a `--with-drafts` symlink dangling until
    `uninstall.sh` and `install.sh` are re-run.
+4. Land the change by PR. PRs land as merge commits (`gh pr merge --merge`), so each commit of a
+   part stays on `main`. There is no CI: the ready evidence is `scripts/tests/*/run.sh`, every one
+   exiting 0 on the branch.
 
 ## Writing skills that stay predictable
 
