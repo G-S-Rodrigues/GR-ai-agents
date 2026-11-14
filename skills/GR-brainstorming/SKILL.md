@@ -17,8 +17,9 @@ Announce the depth chosen (see **Depth**) in one line before the first question.
 
 ## Phase 0 — Ground
 
-Name the repos in scope, then read `docs/agents/repo-gotchas.md` in each and the code the idea
-touches, so questions land on what is actually there. Read `CONTEXT.md` if it exists and use its
+Name the repos in scope, then read `docs/agents/repo-gotchas.md` in each, the
+`docs/agents_knowledge/<concern>.md` files the idea touches (what was measured, dead ends, ideas
+already raised), and the code the idea touches, so questions land on what is actually there. Read `CONTEXT.md` if it exists and use its
 vocabulary in every question; respect the ADRs in the area — where the idea contradicts one, that
 contradiction is itself a question to put to the user.
 
@@ -119,10 +120,10 @@ Phase 4 — do not plan or implement. `GR-tdd` owns the plan.
 
 On the owner's go-ahead, and not before.
 
-**One issue per feature**, in the repo the work lands in:
+**The owning issue already exists** (see **Where artifacts go**); give it the spec's goals:
 
 ```sh
-gh issue create --repo <owner>/<repo> --title "<feature>" --body "<the spec's Context and Goals>"
+gh issue edit <issue> --repo <owner>/<repo> --body "<the spec's Context and Goals>"
 ```
 
 Then rewrite the spec's `## Scope` as a numbered **part list**, each part naming:
@@ -157,9 +158,11 @@ toward resolving them by calling rather than asking.
 ## Where artifacts go
 
 Read `~/.claude/GR-references/where-documents-go.md` — it is the single source of truth for the grill,
-spec, and plan paths. `<scratch>` is always `${HOME}/gitroot/.scratch/`; resolve `<feature>` — the
-branch name — **once**, in Phase 0, and state the resolved path in one line before the first
-question.
+spec, and plan paths. `<feature>` is `<repo>/<issue>-<slug>` of the **owning issue**. Use the issue the
+user named; when there is none, create it before the first file is written — `gh issue create` in the
+repo the work lands in, titled with the idea in one line, its body the user's words — so the folder
+carries its number from the start. Quick mode writes no file and creates no issue. Resolve it
+**once**, in Phase 0, and state the resolved path in one line before the first question.
 
 ## Digest file
 

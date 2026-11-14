@@ -81,8 +81,16 @@ missing row means no merge, so write it.
 that actually landed rather than the code that was proposed. An independent part may start while a
 PR waits.
 
-**One heavy lane:** one build or ready run at a time. A second in-flight part works in a worktree
-(the repo's gotchas name the worktree traps) and queues for the lane. Fix subagents queue for the
+**A part the spec did not list** — a fix part, a split, the rework of an overturned call — gets a
+sub-issue of the owning issue before its branch exists, and its branch and ledger row carry the
+sub-issue's number (`where-documents-go.md` **Issues, branches and worktrees**).
+
+**The last part carries the harvest.** Before its ready gate, dispatch a `GR-general` to run
+`where-documents-go.md` **Closing out a feature** and commit the docs on the last part's branch; its
+verdict table goes to `run/<date>-harvest.md` for `GR-pr` to quote.
+
+**One heavy lane:** one build or ready run at a time. A second in-flight part works in a worktree at
+`<repo>/.scratch/<branch>` (the repo's gotchas name the worktree traps) and queues for the lane. Fix subagents queue for the
 lane too, since their `--fast` runs the repo's build: a review-comment fix, or a fix after a red
 ready gate, waits while a ready run holds it.
 
@@ -198,6 +206,10 @@ so it cannot take a stage of this run. Do not schedule one.
 - every part in the ledger is `merged`, or carries a written reason it is not;
 - every ruling and provisional call appears in the ledger, and every provisional call in the
   report's calls table;
-- the ledger's part table names a PR and a merge SHA for each merged part.
+- the ledger's part table names a PR and a merge SHA for each merged part;
+- the last part's PR quotes the harvest verdicts, and the owning issue is closed.
 
 A part reported merged with no merge SHA in the ledger is not done — it is unrecorded.
+
+When all of these hold, report to the owner, then delete `<scratch>/<feature>/`: the last PR's
+harvest moved what outlives it.

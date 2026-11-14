@@ -17,7 +17,7 @@ Turn one issue into a grounded scope report.
 ## Phase 0 — Frame
 
 1. Read the issue: `gh issue view <n> --repo <owner>/<issue-repo> --json number,title,body,labels,comments`.
-2. Resolve `<feature>` as the branch name GitHub itself would generate: the issue number, then the
+2. Resolve `<feature>` as `<issue-repo>/` plus the branch name GitHub itself would generate: the issue number, then the
    **whole** title lowercased and hyphenated, nothing dropped. Issue 62, *Mark different waypoint types
    in the map in different colours*, gives `62-mark-different-waypoint-types-in-the-map-in-different-colours`.
    The branch does not exist yet, so the issue supplies the name it will later carry.

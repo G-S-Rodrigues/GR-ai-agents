@@ -1,7 +1,32 @@
 # Hooks
 
-Empty for now — this directory is the agreed home for hook scripts so the first one doesn't have to
-invent a location.
+## `branch_guard.py`
+
+A `PreToolUse` guard on `Bash`. It blocks, with the naming rule on stderr:
+
+- a new branch (`git checkout -b`, `git switch -c`, `git branch <name>`, `git worktree add`) whose
+  name does not start with an issue number — `hl-land`, `d2-data-layout`;
+- a worktree whose directory is not named after its branch — `.scratch/slam-m3` holding
+  `47-lidar-slam-m3`.
+
+Listing, deleting and renaming branches, detached worktrees and commands it cannot parse run
+unchecked. The rule it enforces is **Issues, branches and worktrees** in
+[`where-documents-go.md`](../references/where-documents-go.md). Cases: `scripts/tests/branch_guard/run.sh`.
+
+User settings (`~/.claude/settings.json`), since every GR repo names branches this way:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "python3 /mnt/c/dev/GR-ai-agents/hooks/branch_guard.py" }]
+      }
+    ]
+  }
+}
+```
 
 ## Why the installer doesn't install them
 

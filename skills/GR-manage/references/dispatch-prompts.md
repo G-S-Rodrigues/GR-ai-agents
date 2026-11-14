@@ -91,6 +91,7 @@ Run GR-pr on <branch> in <repo>. You are invoked by GR-manage: the PR-text appro
 and is already satisfied — do not stop for it.
 
 Issue: #<n>. Use `Refs #<n>`, or `Closes #<n>` if this is the last part.
+Harvest verdicts to quote (last part only): <scratch>/<feature>/run/<date>-harvest.md, or none.
 Review digest: <path>. Open topics to quote in the body: <paths, or none>.
 
 The ready gate started beside you, and its record will be at <scratch>/<feature>/ready/. Open the PR

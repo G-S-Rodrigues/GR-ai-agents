@@ -91,9 +91,8 @@ single source of truth for the path — and write to:
 <scratch>/<feature>/plans/<date>-<summary>-tdd.md
 ```
 
-`<feature>` is the branch name (e.g. `56-fe-map-visualization`), so the filename does **not** repeat
-the issue number. `<scratch>` is always `${HOME}/gitroot/.scratch/` — see
-`~/.claude/GR-references/where-documents-go.md`. `<date>` is today. The `-tdd` suffix keeps the plan
+`<feature>` is `<repo>/<issue>-<slug>` of the owning issue (e.g. `GR-roboracer/44-autodrive-sim`),
+shared by every part of the run, so the filename does **not** repeat the issue number. `<date>` is today. The `-tdd` suffix keeps the plan
 distinct from a spec sharing the summary.
 
 State the resolved path in one line before writing.

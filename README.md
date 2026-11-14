@@ -159,9 +159,12 @@ notices. A reference no session is told to read is never read, so add this line 
 - Every session and every subagent keeps working through compactions and hands off only when compaction stops working. Before dispatching a subagent, driving another session, or starting work long enough to compact, read `~/.claude/GR-references/context-budget.md`.
 ```
 
-Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log.
+Scripts: `devcontainer_up.sh <repo>` starts a container without streaming its build log;
+`worktree_gc.sh`, run inside a repo, lists the worktrees whose branch has landed and that are clean,
+and removes them with `--remove`.
 
-[`hooks/`](hooks/) is the agreed home for hook scripts and is empty so far. A hook ships with the
+[`hooks/`](hooks/) holds `branch_guard.py`, which blocks a branch without an issue number and a
+worktree not named after its branch; [`hooks/README.md`](hooks/README.md) has its snippet. A hook ships with the
 `settings.json` snippet that arms it, which you paste yourself: the installer prints such lines and
 writes none (the `claude` CLI records the plugin there). [`statusline/`](statusline/statusline.sh) is vendored from
 [daniel3303/ClaudeCodeStatusLine](https://github.com/daniel3303/ClaudeCodeStatusLine) with local

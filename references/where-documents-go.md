@@ -12,9 +12,18 @@ Single source of truth for paths. `GR-brainstorming`, `GR-tdd`, `GR-implement-td
 ├── CLAUDE.md           ← auto-loaded; carries the pointer table into docs/agents/
 ├── CONTEXT.md          ← glossary of terms local to THIS repo (created lazily)
 └── docs/
-    ├── agents/         ← standing rules: gotchas, testing, lint/pre-commit
-    └── adr/            ← architecture decisions, numbered 0001-, 0002-, …
+    ├── agents/             ← standing rules: gotchas, testing, lint/pre-commit
+    ├── agents_knowledge/   ← what the repo has learned, one file per concern
+    └── adr/                ← architecture decisions, numbered 0001-, 0002-, …
 ```
+
+**`docs/agents_knowledge/<concern>.md`** holds what outlives a feature but is not a rule: what is
+built, what was measured, dead ends, ideas not yet specified, open questions. One file per concern
+(the repo's own split, e.g. `simulation`, `raceline`, `control`), listed in its `README.md`. Its
+consumer is the start of new work: `GR-brainstorming` Phase 0 reads the concern files an idea
+touches, and `CLAUDE.md` carries the row *read `docs/agents_knowledge/<concern>.md` before a grill,
+spec or plan on it*. An idea leaves the file when it gets an issue, and a link to the issue
+takes its place.
 
 **Glossaries are two-tier.** Which tier a term belongs to, and why, is `GR-domain-modeling`'s call —
 see its "Which glossary a term belongs in" section rather than deciding here. The two file paths are
@@ -39,13 +48,14 @@ stack-wide defaults. Say that you fell back to it, and offer to bootstrap the re
 **Local, per-feature** — the artifacts of one piece of work:
 
 ```
-<scratch>/<feature>/
+<scratch>/<feature>/                     (<feature> = <repo>/<issue>-<slug>)
 ├── grill/<date>-<summary>.md
 ├── spec/<date>-<summary>.md
 ├── plans/<date>-<summary>-tdd.md             (+ <date>-<summary>-tdd-progress.md after a handoff)
 ├── review/<date>-<summary>.md
 ├── ready/<date>-ready.md          (one file per date; one row appended per run)
 ├── run/ledger.md, run/report.md   (+ run/<date>-<summary>.<ext> for each cited file, handoff-<date>-<summary>.md)
+├── findings/<date>-<summary>.md
 └── open_topics/<date>-<slug>.md
 ```
 
@@ -60,6 +70,7 @@ exactly one of them:
 | `review/` | one review pass over the finished branch: findings, which were applied with the output that proved it, which were declined and why | `GR-review` |
 | `ready/` | what the branch was verified at: the branch SHA, the `main` SHA, the ready gate that ran and the scope it printed | whoever ran the ready gate: `GR-implement-tdd` §5 under the owner, `GR-manage`'s ready stage under a coordinator |
 | `run/` | the ledger of one run: the part table, the current stage, every ruling given, every gate result; the owner's report of what was done and decided; beside them, every file a record cites and every handoff | ledger and report: `GR-manage`; cited files: whoever cites them; handoffs: `matt-handoff` |
+| `findings/` | what an investigation established — a root cause, a measurement, an A/B verdict — with the numbers and how they were produced | whoever ran the investigation |
 | `open_topics/` | a question raised mid-run that did not block it, quoted in the PR body so it reaches the owner at review time | `GR-manage` |
 
 `review/` sits at the far end, after the implementation is committed, and `GR-pr` reads it instead
@@ -100,20 +111,45 @@ goes to `run/`.
 A record is finished when every log, measurement and script it cites is in git, on GitHub or under
 `<scratch>/<feature>/`.
 
-## Resolving `<scratch>` and `<feature>`
+## Issues, branches and worktrees
 
-**`<feature>` is the branch name** — e.g. `56-fe-map-visualization`. It already carries the issue
-number, so filenames do **not** repeat it — branches are created from a GitHub issue, so the number
-is already there. If the work is on `main`, there is no feature name to use: say so and stop rather
-than inventing one.
+Every piece of work hangs off its **owning issue** — the GitHub issue, in the repo the work lands
+in, that the spec or the request belongs to. The scratch folder, every branch and every worktree
+take their name from it, so any of the three leads back to the other two.
 
-**`<scratch>` is always `${HOME}/gitroot/.scratch/`.** There is no reach decision to make. The tree
-sits outside every repo's working tree, which is the point: `git clean -xdf` run inside a repo cannot
-reach a feature's plans, progress files or ledger, and a run that survives a session has to survive
-that too.
+**`<feature>` is `<repo>/<issue>-<slug>` of the owning issue** — e.g. `GR-roboracer/44-autodrive-sim`.
+The repo level is there because issue numbers repeat across repos. Every part of a run shares this
+one folder: the parts' branches differ, the folder does not. Resolve it once, from the issue, and
+state the resolved path in one line before writing to it. Work with no issue yet gets one first
+(`gh issue create`), then its folder.
 
-Never split one feature's artifacts across two trees. Work already living under a repo's own
-`.scratch/` stays where it is — only new features use this path.
+**`<scratch>` is always `${HOME}/gitroot/.scratch/`.** The tree sits outside every repo's working
+tree, which is the point: `git clean -xdf` run inside a repo cannot reach a feature's plans,
+progress files or ledger, and a run that survives a session has to survive that too. Inside a dev
+container it is wherever the repo's compose file mounts it — check there before writing a probe to
+the container's own filesystem.
+
+**A branch is `<issue>-<slug>`.** A planned part is `<issue>-<slug>-<n>`, as the spec's part list
+names it. A part or fix that was not in the spec — a split, a regression found mid-run, a spike —
+gets a **sub-issue** of the owning issue, and its branch starts with the sub-issue's number:
+
+```sh
+gh issue create --repo <owner>/<repo> --title "<what it does>" --body "Part of #<owning issue>. <why>"
+gh api -X POST repos/<owner>/<repo>/issues/<owning issue>/sub_issues -F sub_issue_id=<the new issue's id>
+```
+
+(`gh issue view <n> --json id` gives the node id, not the numeric one: use
+`gh api repos/<owner>/<repo>/issues/<n> --jq .id`.) Its artifacts stay in the owning issue's folder.
+
+**A worktree is `<repo>/.scratch/<branch>`** — the directory is the branch name, nothing shorter. It
+is removed, with its local branch, once its PR merges (`GR-pr` does that);
+`scripts/worktree_gc.sh` in GR-ai-agents sweeps any left behind. `hooks/branch_guard.py` blocks a new
+branch without an issue number and a worktree named differently from its branch.
+
+**Probes are found before they are written.** Before writing a script to record topics, compare two
+branches, sample host load or match timestamps, search the repo's `tools/` and `scripts/`, the
+skills' `scripts/`, and the owning issue's `run/`. A probe being written for the second time is
+promoted instead: a sub-issue to move it into the repo's `tools/`, with tests.
 
 ## `<date>` and `<summary>`
 
@@ -121,26 +157,42 @@ Never split one feature's artifacts across two trees. Work already living under 
 `<summary>` is a short kebab-case slug of the subject. Plans carry a `-tdd` suffix so a plan and the
 spec it implements can share a summary without colliding.
 
-## Both trees are gitignored
+## What is committed differs per repo
 
-`docs/`, `.scratch/`, and `.claude/` are in `.gitignore` in the repos set up so far. Nothing written
-to either tree reaches the team until that changes — do not assume a teammate can see a file you
-wrote. A repo that needs one of these committed un-ignores that path explicitly.
+`.scratch/` is always gitignored. `docs/` is committed in some repos (GR-roboracer) and ignored in
+others: read the repo's `.gitignore` before assuming a teammate can see a file you wrote.
 
 ## Tier decision
 
 Ask what outlives the feature:
 
 - A trap that will cost time again → `docs/agents/`
+- A result, a dead end or an unspecified idea about one concern → `docs/agents_knowledge/<concern>.md`
 - A term two or more repos must agree on → `~/.claude/GR-references/stack-glossary.md`
 - A decision that is hard to reverse, surprising, and had real alternatives → the repo's own
   `docs/adr/README.md` has the full gate and what qualifies in this stack
 - A term one repo keeps arguing about → that repo's `CONTEXT.md`
 - Anything else about *this* piece of work → `.scratch/<feature>/`
 
-Ask the user before committing anything from the committed tier. Both trees are gitignored today
-while this way of working is still being tested, so a commit is a deliberate decision to change
-that, not a routine step.
+Ask the user before committing anything from the committed tier.
+
+## Closing out a feature
+
+The scratch folder is temporary; the **harvest** is what makes deleting it safe. It runs on the last
+part, before the PR that carries `Closes #<owning issue>` opens. Every file in `open_topics/` and
+`findings/` gets exactly one verdict:
+
+| Verdict | Goes to |
+|---|---|
+| resolved | nowhere — say by which PR |
+| trap | `docs/agents/repo-gotchas.md` |
+| lasting result, dead end or idea | `docs/agents_knowledge/<concern>.md` |
+| still to do | a sub-issue of the owning issue, or a new issue |
+
+The harvested docs ride on that last PR. Once it merges, the issue closes, and the folder is
+deleted by whoever wrote to it last — the coordinator after its ledger's final row, otherwise
+`GR-pr`. **Done when** every `open_topics/` and `findings/` file has a verdict in the last PR's
+body, and no `docs/` file links into `.scratch/`.
 
 ### ADR gate fallback
 
