@@ -64,5 +64,32 @@ for b in 3-unmerged 4-dirty 5-untracked; do
 done
 [ "$failed" = 0 ] && echo "PASS GC-10" && echo "PASS GC-11"
 
+# A merged PR counts only for the commits it carried. A stub gh answers `pr list --head <b>` with
+# the head SHAs listed in $tmp/gh/<b>.
+mkdir -p "$tmp/bin" "$tmp/gh"
+cat >"$tmp/bin/gh" <<EOF
+#!/usr/bin/env bash
+while [ \$# -gt 0 ]; do [ "\$1" = --head ] && { cat "$tmp/gh/\$2" 2>/dev/null; exit 0; }; shift; done
+EOF
+chmod +x "$tmp/bin/gh"
+wt 8-reused;    commit 8-reused eight f8; git -C "$r" rev-parse 8-reused >"$tmp/gh/8-reused"
+commit 8-reused eight-more f8b                                 # committed after its PR merged
+wt 9-ghmerged;  commit 9-ghmerged nine f9; commit 9-ghmerged nine-b f9b
+git -C "$r" rev-parse 9-ghmerged >"$tmp/gh/9-ghmerged"         # squash-merged at this tip
+out=$(cd "$r" && PATH="$tmp/bin:$PATH" bash "$gc" 2>&1)
+expect GC-12 8-reused   keep
+expect GC-13 9-ghmerged remove
+
+# With no origin/main to judge against, nothing is removed and the sweep says why.
+git -c init.defaultBranch=master init -q --bare "$tmp/o2.git"
+git clone -q "$tmp/o2.git" "$tmp/r2" 2>/dev/null
+echo a >"$tmp/r2/a"; g -C "$tmp/r2" add -A; g -C "$tmp/r2" commit -m base; g -C "$tmp/r2" push origin HEAD:master
+g -C "$tmp/r2" fetch origin
+g -C "$tmp/r2" worktree add -b 1-work "$tmp/r2/.scratch/1-work" origin/master
+echo w >"$tmp/r2/.scratch/1-work/w"; g -C "$tmp/r2/.scratch/1-work" add -A; g -C "$tmp/r2/.scratch/1-work" commit -m work
+out2=$(cd "$tmp/r2" && bash "$gc" --no-gh --remove 2>&1); rc=$?
+if [ "$rc" != 0 ] && [ -d "$tmp/r2/.scratch/1-work" ] && grep -q 'origin/main' <<<"$out2"; then echo "PASS GC-14"
+else echo "FAIL GC-14: rc=$rc, worktree $( [ -d "$tmp/r2/.scratch/1-work" ] && echo kept || echo removed): $out2"; failed=1; fi
+
 [ "$failed" = 0 ] || printf -- '--- sweep output ---\n%s\n' "$out"
 exit "$failed"

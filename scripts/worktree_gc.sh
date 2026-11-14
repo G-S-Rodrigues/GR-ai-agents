@@ -6,7 +6,8 @@
 #   - the branch tip is an ancestor of origin/main (merge commit or fast-forward);
 #   - every commit ahead of origin/main is patch-equivalent to one on it (`git cherry`, which
 #     catches a rebase merge and a one-commit squash);
-#   - GitHub reports a merged PR from the branch (a multi-commit squash; skipped with --no-gh).
+#   - GitHub reports a merged PR from the branch whose head is the branch tip or contains it (a
+#     multi-commit squash; skipped with --no-gh). A branch name reused after its PR merged keeps.
 # The main checkout and detached worktrees are never touched.
 #
 # Usage, from inside the repo:
@@ -31,19 +32,25 @@ done
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "not in a git repo" >&2; exit 64; }
 main_wt=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
 git -C "$main_wt" fetch -q origin 2>/dev/null || echo "warning: fetch failed; judging against the local origin/main" >&2
+git -C "$main_wt" rev-parse -q --verify origin/main >/dev/null || {
+  echo "no origin/main in $main_wt: nothing to judge a branch as landed against; nothing removed" >&2; exit 65; }
 [ "$use_gh" = 1 ] && ! command -v gh >/dev/null && use_gh=0
 
 landed() {  # landed BRANCH -> prints the reason and returns 0 when the branch has landed
-  local b="$1"
+  local b="$1" ahead tip oid
   if git -C "$main_wt" merge-base --is-ancestor "refs/heads/$b" origin/main 2>/dev/null; then
     echo "on origin/main"; return 0
   fi
-  if ! git -C "$main_wt" cherry origin/main "refs/heads/$b" 2>/dev/null | grep -q '^+'; then
+  if ahead=$(git -C "$main_wt" cherry origin/main "refs/heads/$b" 2>/dev/null) && ! grep -q '^+' <<<"$ahead"; then
     echo "every commit's patch is on origin/main"; return 0
   fi
-  if [ "$use_gh" = 1 ] && [ -n "$(gh pr list --head "$b" --state merged --json number --jq '.[].number' 2>/dev/null)" ]; then
-    echo "PR merged on GitHub"; return 0
-  fi
+  [ "$use_gh" = 1 ] || return 1
+  tip=$(git -C "$main_wt" rev-parse "refs/heads/$b") || return 1
+  for oid in $(gh pr list --head "$b" --state merged --json headRefOid --jq '.[].headRefOid' 2>/dev/null); do
+    if [ "$oid" = "$tip" ] || git -C "$main_wt" merge-base --is-ancestor "$tip" "$oid" 2>/dev/null; then
+      echo "PR merged on GitHub at this tip"; return 0
+    fi
+  done
   return 1
 }
 
